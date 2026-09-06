@@ -18,6 +18,8 @@ from .persistence import (
 class ScanManager:
     """Manage background full and targeted scanner jobs."""
 
+    SCAN_TIMEOUT_SECONDS = 60 * 60
+
     def __init__(self) -> None:
         self._lock = threading.RLock()
         self._running_scan_id: int | None = None
@@ -32,13 +34,9 @@ class ScanManager:
 
     def start_scan(self) -> int:
         with self._lock:
-            if self._running_scan_id is not None:
-                raise RuntimeError(
-                    f"Scan {self._running_scan_id} is already running."
-                )
+            self._ensure_not_running()
 
             scan_id = self._create_history()
-
             self._running_scan_id = scan_id
 
             thread = threading.Thread(
@@ -53,13 +51,9 @@ class ScanManager:
 
     def start_rescan(self, domain: str) -> int:
         with self._lock:
-            if self._running_scan_id is not None:
-                raise RuntimeError(
-                    f"Scan {self._running_scan_id} is already running."
-                )
+            self._ensure_not_running()
 
             scan_id = self._create_history()
-
             self._running_scan_id = scan_id
 
             thread = threading.Thread(
@@ -71,6 +65,12 @@ class ScanManager:
             thread.start()
 
             return scan_id
+
+    def _ensure_not_running(self) -> None:
+        if self._running_scan_id is not None:
+            raise RuntimeError(
+                f"Scan {self._running_scan_id} is already running."
+            )
 
     def _create_history(self) -> int:
         db = SessionLocal()
@@ -108,14 +108,21 @@ class ScanManager:
         self._set_running(scan_id)
 
         try:
-            script_path = self._resolve_script_path()
+            project_root = self._project_root()
 
             if command_type == "targeted":
+                if not domain:
+                    raise ValueError(
+                        "Targeted scan requires a domain."
+                    )
+
                 script_path = (
-                    self._project_root()
+                    project_root
                     / "scanner"
                     / "rescan.py"
                 )
+            else:
+                script_path = self._resolve_script_path()
 
             if not script_path.is_file():
                 raise FileNotFoundError(
@@ -128,20 +135,15 @@ class ScanManager:
             ]
 
             if command_type == "targeted":
-                if not domain:
-                    raise ValueError(
-                        "Targeted scan requires a domain."
-                    )
-
                 command.append(domain)
 
             process = subprocess.run(
                 command,
-                cwd=str(self._project_root()),
+                cwd=str(project_root),
                 env=os.environ.copy(),
                 capture_output=True,
                 text=True,
-                timeout=60 * 60,
+                timeout=self.SCAN_TIMEOUT_SECONDS,
                 check=False,
             )
 
@@ -162,11 +164,20 @@ class ScanManager:
                 )
                 return
 
-            self._sync_results(scan_id)
+            sync_info = self._sync_results(
+                scan_id=scan_id,
+                command_type=command_type,
+                domain=domain,
+            )
 
             self._finish_scan(
                 scan_id,
                 status="completed",
+            )
+
+            print(
+                "[ScanManager] Scan completed:",
+                sync_info,
             )
 
         except subprocess.TimeoutExpired:
@@ -174,7 +185,8 @@ class ScanManager:
                 scan_id,
                 status="failed",
                 error_message=(
-                    "Scanner timed out after 60 minutes."
+                    "Scanner timed out after "
+                    "60 minutes."
                 ),
             )
 
@@ -185,7 +197,13 @@ class ScanManager:
                 error_message=str(exc)[-4000:],
             )
 
-    def _sync_results(self, scan_id: int) -> None:
+    def _sync_results(
+        self,
+        *,
+        scan_id: int,
+        command_type: str,
+        domain: str | None,
+    ) -> dict[str, int]:
         results_file = (
             self._project_root()
             / "data"
@@ -193,7 +211,12 @@ class ScanManager:
         )
 
         if not results_file.is_file():
-            return
+            return {
+                "saved": 0,
+                "discovered": 0,
+                "scanned": 0,
+                "candidates": 0,
+            }
 
         try:
             with results_file.open(
@@ -203,33 +226,94 @@ class ScanManager:
                 results = json.load(file)
 
         except (OSError, json.JSONDecodeError):
-            return
+            return {
+                "saved": 0,
+                "discovered": 0,
+                "scanned": 0,
+                "candidates": 0,
+            }
 
         if not isinstance(results, list):
-            return
+            return {
+                "saved": 0,
+                "discovered": 0,
+                "scanned": 0,
+                "candidates": 0,
+            }
+
+        # Full scan:
+        # results.json contains the complete persistent result set.
+        #
+        # Targeted rescan:
+        # only synchronize the requested domain instead of pretending
+        # that the entire historical result set was scanned again.
+        if command_type == "targeted":
+            normalized = (
+                str(domain or "")
+                .strip()
+                .lower()
+            )
+
+            sync_results = [
+                result
+                for result in results
+                if isinstance(result, dict)
+                and str(
+                    result.get("domain", "")
+                ).strip().lower() == normalized
+            ]
+
+            domains_discovered = 1
+            domains_scanned = 1 if sync_results else 0
+
+        else:
+            sync_results = [
+                result
+                for result in results
+                if isinstance(result, dict)
+            ]
+
+            domains_discovered = len(sync_results)
+            domains_scanned = len(sync_results)
 
         db = SessionLocal()
 
         try:
-            save_domain_results(
+            saved = save_domain_results(
                 db,
-                results,
+                sync_results,
+            )
+
+            candidates_found = sum(
+                1
+                for result in sync_results
+                if float(
+                    result.get(
+                        "python_score",
+                        result.get("score", 0),
+                    )
+                    or 0
+                ) >= 60
             )
 
             update_scan_history(
                 db,
                 scan_id,
-                domains_discovered=len(results),
-                domains_scanned=len(results),
-                candidates_found=sum(
-                    1
-                    for result in results
-                    if isinstance(result, dict)
-                    and result.get("python_score", 0) >= 60
-                ),
+                domains_discovered=domains_discovered,
+                domains_scanned=domains_scanned,
+                candidates_found=candidates_found,
+                status="running",
             )
+
         finally:
             db.close()
+
+        return {
+            "saved": saved,
+            "discovered": domains_discovered,
+            "scanned": domains_scanned,
+            "candidates": candidates_found,
+        }
 
     def _set_running(self, scan_id: int) -> None:
         db = SessionLocal()
@@ -269,7 +353,10 @@ class ScanManager:
 
     @staticmethod
     def _project_root() -> Path:
-        # backend/app/services -> backend/app -> backend -> project root
+        # backend/app/services
+        # -> backend/app
+        # -> backend
+        # -> repository root
         return Path(__file__).resolve().parents[3]
 
     def _resolve_script_path(self) -> Path:
