@@ -3,42 +3,51 @@ package com.lagenddesi.ld76domainfinder
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.activity.viewModels
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.lagenddesi.ld76domainfinder.data.DomainResult
+import com.lagenddesi.ld76domainfinder.ui.DomainDetailsScreen
+import com.lagenddesi.ld76domainfinder.ui.DomainFinderScreen
+import com.lagenddesi.ld76domainfinder.ui.DomainFinderViewModel
+import com.lagenddesi.ld76domainfinder.ui.DomainFinderViewModelFactory
+import com.lagenddesi.ld76domainfinder.ui.LD76DomainFinderTheme
 
 class MainActivity : ComponentActivity() {
+
+    private val viewModel: DomainFinderViewModel by viewModels {
+        DomainFinderViewModelFactory()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            LD76DomainFinderApp()
-        }
-    }
-}
+            LD76DomainFinderTheme {
+                var selectedDomain by remember {
+                    mutableStateOf<DomainResult?>(null)
+                }
 
-@Composable
-private fun LD76DomainFinderApp() {
-    MaterialTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    text = "LD76 Domain Finder",
-                    style = MaterialTheme.typography.headlineMedium,
-                )
+                if (selectedDomain == null) {
+                    DomainFinderScreen(
+                        viewModel = viewModel,
+                        onDomainClick = { domain ->
+                            selectedDomain = domain
+                        },
+                    )
+                } else {
+                    DomainDetailsScreen(
+                        result = selectedDomain!!,
+                        onBack = {
+                            selectedDomain = null
+                        },
+                        onRescan = { domain ->
+                            viewModel.rescanDomain(domain)
+                        },
+                    )
+                }
             }
         }
     }
