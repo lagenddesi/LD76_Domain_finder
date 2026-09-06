@@ -1,7 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from ..dependencies import authenticated_client
 from ..services.scan_manager import scan_manager
+
+
+limiter = Limiter(key_func=get_remote_address)
 
 
 router = APIRouter(
@@ -12,7 +17,11 @@ router = APIRouter(
 
 
 @router.post("/rescan/{domain}")
-def rescan_domain(domain: str):
+@limiter.limit("10/hour")
+def rescan_domain(
+    request: Request,
+    domain: str,
+):
     domain = domain.strip()
 
     if not domain:
