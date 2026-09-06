@@ -1,12 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import ValidationError
 
 from ..dependencies import authenticated_client
 from ..rate_limit import limiter
 from ..schemas import RescanResponse
-from ..services.scan_manager import (
-    get_scan_manager,
-)
+from ..services.scan_manager import scan_manager
 
 
 router = APIRouter(
@@ -46,7 +43,7 @@ def rescan_domain(
             normalized_domain
         )
 
-    except (ImportError, ValidationError):
+    except ImportError:
         raise HTTPException(
             status_code=503,
             detail="Scanner is unavailable.",
@@ -58,16 +55,14 @@ def rescan_domain(
             detail="Invalid domain.",
         )
 
-    manager = get_scan_manager()
-
-    if manager.is_running():
+    if scan_manager.is_running():
         raise HTTPException(
             status_code=409,
             detail="Another scan is already running.",
         )
 
     try:
-        scan_id = manager.start_rescan(
+        scan_id = scan_manager.start_rescan(
             normalized_domain
         )
 
