@@ -1,21 +1,23 @@
 """
 LD76 Domain Finder
-Gemini Queue - Phase 2
+Gemini Queue - Phase 2 Hardened
 
 Purpose:
-    Gemini analyzer ke liye controlled request queue.
+    Python-filtered strong candidates ko controlled way mein
+    Gemini analyzer tak bhejna.
 
 Design:
-    - Har domain ko Gemini nahi bhejna.
-    - Sirf Python-filtered strong candidates.
-    - Concurrent Gemini requests ko limit karna.
-    - Daily budget enforce karna.
-    - Same content hash ko dobara analyze na karna.
-    - Failed candidate se poori scan process crash na ho.
+    - Gemini ko har domain nahi bhejna.
+    - Python threshold mandatory.
+    - Domain-level deduplication.
+    - Same content hash ko queue mein duplicate request nahi.
+    - Gemini analyzer apni persistent content cache handle karta hai.
+    - ThreadPool concurrency controlled.
+    - Failed candidate poori scan ko crash nahi karta.
+    - Original domain identity hamesha preserve hoti hai.
 """
 
 import os
-import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -33,12 +35,74 @@ GEMINI_CONCURRENCY = max(
     ),
 )
 
-PYTHON_GEMINI_THRESHOLD = int(
-    os.getenv(
-        "PYTHON_GEMINI_THRESHOLD",
-        "80",
-    )
+PYTHON_GEMINI_THRESHOLD = max(
+    0,
+    int(
+        os.getenv(
+            "PYTHON_GEMINI_THRESHOLD",
+            "80",
+        )
+    ),
 )
+
+
+# ============================================================
+# HELPERS
+# ============================================================
+
+def get_domain(candidate):
+    """
+    Candidate se normalized domain return karta hai.
+    """
+    if not isinstance(candidate, dict):
+        return ""
+
+    return str(
+        candidate.get(
+            "domain",
+            "",
+        )
+    ).strip().lower()
+
+
+def get_content_hash(candidate):
+    """
+    Candidate ka content hash return karta hai.
+    """
+    if not isinstance(candidate, dict):
+        return ""
+
+    return str(
+        candidate.get(
+            "content_hash",
+            "",
+        )
+    ).strip()
+
+
+def get_python_score(candidate):
+    """
+    Python scanner score safely read karta hai.
+    """
+
+    if not isinstance(candidate, dict):
+        return 0
+
+    value = candidate.get(
+        "score",
+        candidate.get(
+            "python_score",
+            0,
+        ),
+    )
+
+    try:
+        return int(value)
+    except (
+        TypeError,
+        ValueError,
+    ):
+        return 0
 
 
 # ============================================================
@@ -47,8 +111,8 @@ PYTHON_GEMINI_THRESHOLD = int(
 
 def is_gemini_candidate(scanner_result):
     """
-    Decide karta hai ke Python scanner result Gemini ko
-    bhejne ke qabil hai ya nahi.
+    Decide karta hai ke candidate Gemini analysis ke liye
+    strong enough hai ya nahi.
     """
 
     if not isinstance(
@@ -57,92 +121,72 @@ def is_gemini_candidate(scanner_result):
     ):
         return False
 
-    score = scanner_result.get(
-        "score",
-        scanner_result.get(
-            "python_score",
-            0,
-        ),
+    domain = get_domain(
+        scanner_result
     )
 
-    try:
-        score = int(score)
-    except (
-        TypeError,
-        ValueError,
-    ):
+    if not domain:
         return False
+
+    score = get_python_score(
+        scanner_result
+    )
 
     if score < PYTHON_GEMINI_THRESHOLD:
-        return False
-
-    if not scanner_result.get(
-        "domain"
-    ):
         return False
 
     return True
 
 
 # ============================================================
-# CANDIDATE DEDUPLICATION
+# DOMAIN DEDUPLICATION
 # ============================================================
 
 def deduplicate_candidates(candidates):
     """
-    Domain aur content_hash dono levels par duplicates
-    remove karta hai.
+    Domain-level deduplication.
 
-    Same domain ke same content ko ek hi request milegi.
+    IMPORTANT:
+        Content hash global dedup yahan intentionally nahi kiya
+        jata.
+
+    Reason:
+        Do different domains ka identical content ho sakta hai.
+        Dono domains ko result set mein preserve karna zaroori hai.
+
+    Gemini analyzer ki persistent content cache same content ke
+    liye unnecessary API request ko already prevent karti hai.
     """
 
-    if not candidates:
+    if not isinstance(
+        candidates,
+        list,
+    ):
         return []
 
     seen_domains = set()
-    seen_hashes = set()
-
     unique = []
 
     for candidate in candidates:
+
         if not isinstance(
             candidate,
             dict,
         ):
             continue
 
-        domain = str(
-            candidate.get(
-                "domain",
-                "",
-            )
-        ).strip().lower()
+        domain = get_domain(
+            candidate
+        )
 
         if not domain:
             continue
 
-        content_hash = str(
-            candidate.get(
-                "content_hash",
-                "",
-            )
-        ).strip()
-
-        domain_key = domain
-
-        if domain_key in seen_domains:
+        if domain in seen_domains:
             continue
 
-        if content_hash:
-            if content_hash in seen_hashes:
-                continue
-
-            seen_hashes.add(
-                content_hash
-            )
-
         seen_domains.add(
-            domain_key
+            domain
         )
 
         unique.append(
@@ -158,8 +202,9 @@ def deduplicate_candidates(candidates):
 
 def prepare_queue(scanner_results):
     """
-    Python scanner ke results mein se sirf strong candidates
-    queue ke liye select karta hai.
+    Python scanner results ko Gemini queue ke liye prepare karta hai.
+
+    Sirf threshold pass karne wale candidates queue mein aate hain.
     """
 
     if not isinstance(
@@ -171,10 +216,15 @@ def prepare_queue(scanner_results):
     candidates = []
 
     for result in scanner_results:
-        if is_gemini_candidate(result):
-            candidates.append(
-                result
-            )
+
+        if not is_gemini_candidate(
+            result
+        ):
+            continue
+
+        candidates.append(
+            result
+        )
 
     return deduplicate_candidates(
         candidates
@@ -193,41 +243,84 @@ def process_candidate(
     """
     Ek candidate ko Gemini analyzer ke through process karta hai.
 
-    Import yahan intentionally kiya gaya hai taake queue module
-    standalone import ho sake.
+    Exception ko yahin contain kiya jata hai taake ek broken
+    candidate poori scan ko crash na kare.
     """
 
+    domain = get_domain(
+        candidate
+    )
+
     try:
-        from gemini_analyzer import analyze_candidate
+        from gemini_analyzer import (
+            analyze_candidate,
+        )
+
     except ImportError:
         try:
             from scanner.gemini_analyzer import (
-                analyze_candidate
+                analyze_candidate,
             )
+
         except ImportError as exc:
             return {
                 "success": False,
                 "status": "import_error",
-                "domain": candidate.get(
-                    "domain",
-                    "",
+                "domain": domain,
+                "content_hash": get_content_hash(
+                    candidate
                 ),
                 "error": str(exc),
             }
 
     try:
-        return analyze_candidate(
+        result = analyze_candidate(
             candidate,
             force=force,
         )
+
+        if not isinstance(
+            result,
+            dict,
+        ):
+            return {
+                "success": False,
+                "status": "invalid_analyzer_result",
+                "domain": domain,
+                "content_hash": get_content_hash(
+                    candidate
+                ),
+                "error": (
+                    "Gemini analyzer returned "
+                    "a non-dictionary result."
+                ),
+            }
+
+        # Analyzer result mein domain missing ho to
+        # original candidate ka domain restore karo.
+        if not result.get(
+            "domain"
+        ):
+            result["domain"] = domain
+
+        if not result.get(
+            "content_hash"
+        ):
+            result["content_hash"] = (
+                get_content_hash(
+                    candidate
+                )
+            )
+
+        return result
 
     except Exception as exc:
         return {
             "success": False,
             "status": "candidate_error",
-            "domain": candidate.get(
-                "domain",
-                "",
+            "domain": domain,
+            "content_hash": get_content_hash(
+                candidate
             ),
             "error": str(exc),
         }
@@ -243,10 +336,11 @@ def run_gemini_queue(
     force=False,
 ):
     """
-    Strong Python candidates ko controlled concurrency ke
-    saath Gemini analyzer tak bhejta hai.
+    Strong candidates ko controlled concurrency ke saath
+    Gemini analyzer tak bhejta hai.
 
     Returns:
+
         {
             "queued": int,
             "processed": int,
@@ -271,24 +365,28 @@ def run_gemini_queue(
 
     results = []
 
-    # ThreadPool sirf network-bound Gemini requests ko
-    # efficiently handle karta hai.
     with ThreadPoolExecutor(
         max_workers=GEMINI_CONCURRENCY
     ) as executor:
 
-        future_map = {
-            executor.submit(
+        future_map = {}
+
+        for candidate in queue:
+
+            future = executor.submit(
                 process_candidate,
                 candidate,
                 force=force,
-            ): candidate
-            for candidate in queue
-        }
+            )
+
+            future_map[
+                future
+            ] = candidate
 
         for future in as_completed(
             future_map
         ):
+
             candidate = future_map[
                 future
             ]
@@ -300,30 +398,56 @@ def run_gemini_queue(
                 result = {
                     "success": False,
                     "status": "queue_error",
-                    "domain": candidate.get(
-                        "domain",
-                        "",
+                    "domain": get_domain(
+                        candidate
+                    ),
+                    "content_hash": get_content_hash(
+                        candidate
                     ),
                     "error": str(exc),
+                }
+
+            if not isinstance(
+                result,
+                dict,
+            ):
+                result = {
+                    "success": False,
+                    "status": "invalid_queue_result",
+                    "domain": get_domain(
+                        candidate
+                    ),
+                    "content_hash": get_content_hash(
+                        candidate
+                    ),
+                    "error": (
+                        "Queue received invalid "
+                        "result object."
+                    ),
                 }
 
             results.append(
                 result
             )
 
-    successful = sum(
-        1
-        for result in results
+    successful = 0
+    failed = 0
+
+    for result in results:
+
         if result.get(
-            "success"
-        )
-    )
+            "success",
+            False,
+        ):
+            successful += 1
+        else:
+            failed += 1
 
     return {
         "queued": len(queue),
         "processed": len(results),
         "successful": successful,
-        "failed": len(results) - successful,
+        "failed": failed,
         "results": results,
     }
 
@@ -337,10 +461,14 @@ def merge_gemini_results(
     gemini_results,
 ):
     """
-    Gemini classification ko original Python scanner
-    results ke saath merge karta hai.
+    Gemini results ko original Python scanner results ke saath
+    domain ke basis par merge karta hai.
 
-    Original Python evidence preserve rehti hai.
+    Important:
+        Original Python evidence kabhi delete nahi hoti.
+
+    Agar Gemini fail ho:
+        Python result phir bhi preserve rehta hai.
     """
 
     if not isinstance(
@@ -357,28 +485,29 @@ def merge_gemini_results(
 
     by_domain = {}
 
-    for item in gemini_results:
+    for gemini_result in gemini_results:
+
         if not isinstance(
-            item,
+            gemini_result,
             dict,
         ):
             continue
 
-        domain = str(
-            item.get(
-                "domain",
-                "",
-            )
-        ).strip().lower()
+        domain = get_domain(
+            gemini_result
+        )
 
-        if domain:
-            by_domain[
-                domain
-            ] = item
+        if not domain:
+            continue
+
+        by_domain[
+            domain
+        ] = gemini_result
 
     merged = []
 
     for scanner_result in scanner_results:
+
         if not isinstance(
             scanner_result,
             dict,
@@ -389,54 +518,117 @@ def merge_gemini_results(
             scanner_result
         )
 
-        domain = str(
-            item.get(
-                "domain",
-                "",
-            )
-        ).strip().lower()
+        domain = get_domain(
+            item
+        )
 
         gemini = by_domain.get(
             domain
         )
 
-        if gemini:
-            item[
-                "gemini_analyzed"
-            ] = bool(
-                gemini.get(
-                    "success"
-                )
+        if gemini is None:
+
+            # Candidate Gemini queue mein nahi gaya.
+            item.setdefault(
+                "gemini_analyzed",
+                False,
             )
 
-            item[
-                "gemini_status"
-            ] = gemini.get(
-                "status",
-                "",
+            merged.append(
+                item
             )
 
-            item[
-                "gemini_content_hash"
-            ] = gemini.get(
-                "content_hash",
-                "",
-            )
+            continue
 
-            if gemini.get(
+        success = bool(
+            gemini.get(
+                "success",
+                False,
+            )
+        )
+
+        item[
+            "gemini_analyzed"
+        ] = success
+
+        item[
+            "gemini_status"
+        ] = gemini.get(
+            "status",
+            "",
+        )
+
+        item[
+            "gemini_content_hash"
+        ] = gemini.get(
+            "content_hash",
+            get_content_hash(
+                item
+            ),
+        )
+
+        if gemini.get(
+            "analysis"
+        ) is not None:
+
+            item[
+                "gemini"
+            ] = gemini[
                 "analysis"
-            ):
-                item[
-                    "gemini"
-                ] = gemini[
-                    "analysis"
-                ]
+            ]
+
+        if gemini.get(
+            "error"
+        ):
+            item[
+                "gemini_error"
+            ] = gemini[
+                "error"
+            ]
 
         merged.append(
             item
         )
 
     return merged
+
+
+# ============================================================
+# RESULT SORTING
+# ============================================================
+
+def sort_gemini_results(
+    results
+):
+    """
+    High Python score ko upar rakhta hai.
+
+    Gemini failure ya missing score ki wajah se crash nahi hota.
+    """
+
+    if not isinstance(
+        results,
+        list,
+    ):
+        return []
+
+    def sort_key(item):
+
+        if not isinstance(
+            item,
+            dict,
+        ):
+            return 0
+
+        return get_python_score(
+            item
+        )
+
+    return sorted(
+        results,
+        key=sort_key,
+        reverse=True,
+    )
 
 
 # ============================================================
@@ -447,7 +639,7 @@ def print_queue_summary(
     queue_result
 ):
     """
-    Console-friendly summary.
+    Console-friendly queue summary.
     """
 
     if not isinstance(
@@ -494,13 +686,15 @@ def print_queue_summary(
 
 
 # ============================================================
-# TEST
+# TEST / DEMO
 # ============================================================
 
 if __name__ == "__main__":
+
     print(
         "LD76 Gemini Queue"
     )
+
     print(
         "-----------------"
     )
@@ -517,14 +711,29 @@ if __name__ == "__main__":
 
     demo = [
         {
-            "domain": "example.top",
+            "domain": "strong-one.top",
             "score": 90,
-            "content_hash": "abc123",
+            "content_hash": "aaa111",
+        },
+        {
+            "domain": "strong-two.top",
+            "score": 85,
+            "content_hash": "aaa111",
+        },
+        {
+            "domain": "duplicate.top",
+            "score": 95,
+            "content_hash": "bbb222",
+        },
+        {
+            "domain": "duplicate.top",
+            "score": 99,
+            "content_hash": "ccc333",
         },
         {
             "domain": "weak.top",
             "score": 30,
-            "content_hash": "def456",
+            "content_hash": "ddd444",
         },
     ]
 
@@ -533,6 +742,22 @@ if __name__ == "__main__":
     )
 
     print(
-        "Demo candidates:",
+        "Prepared candidates:",
         len(prepared),
-      )
+    )
+
+    for candidate in prepared:
+        print(
+            " -",
+            get_domain(
+                candidate
+            ),
+            "| score:",
+            get_python_score(
+                candidate
+            ),
+            "| hash:",
+            get_content_hash(
+                candidate
+            ),
+        )
