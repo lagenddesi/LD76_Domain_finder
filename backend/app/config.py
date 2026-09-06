@@ -28,7 +28,7 @@ ENVIRONMENT LOADING
 
 Load backend/.env first, then repository-root .env.
 
-Existing environment variables always have priority.
+Existing environment variables have priority by default.
 
 load_dotenv(BACKEND_ROOT / ".env")
 load_dotenv(PROJECT_ROOT / ".env")
@@ -203,10 +203,10 @@ def resolve_project_path(
 value: str,
 ) -> Path:
 """
-Resolve a configured project-relative path.
+Resolve a configured path.
 
 Absolute paths are preserved.
-Relative paths are resolved from repository root.
+Relative paths are resolved from the repository root.
 """
 
 path = Path(value)
@@ -228,15 +228,15 @@ def validate_security_config() -> None:
 """
 Validate security-critical configuration.
 
-Development can run without production secrets so local
-testing remains easy.
+Development can run without production secrets.
 
-Production must have:
+Production requires:
     API_SECRET_KEY
     ANDROID_API_KEY
 """
 
 if APP_ENV == "production":
+
     if not API_SECRET_KEY:
         raise RuntimeError(
             "API_SECRET_KEY must be configured in production."
