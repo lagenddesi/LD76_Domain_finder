@@ -2,9 +2,8 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 
 from .config import (
     APP_DEBUG,
@@ -14,13 +13,8 @@ from .config import (
     validate_security_config,
 )
 from .database import Base, engine
+from .rate_limit import limiter
 from .routers import rescan, results, scans
-
-
-# IP-based rate limiter.
-# This is an abuse-protection layer; Android authentication
-# remains handled separately by the protected API dependencies.
-limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
@@ -42,7 +36,7 @@ app = FastAPI(
 )
 
 
-# Register SlowAPI state and exception handling.
+# Register the single shared SlowAPI limiter.
 app.state.limiter = limiter
 app.add_exception_handler(
     RateLimitExceeded,
