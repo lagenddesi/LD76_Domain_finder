@@ -1,1023 +1,1201 @@
 """
 LD76 Domain Finder
-Gemini Analyzer - Phase 2 Foundation
+Gemini Analyzer - Rate-Limited Production Layer
 
 Purpose:
-    Python scanner ke strong candidates ko Gemini se classify karna.
+Python scanner ke strong candidates ko Gemini se classify karna.
 
-Important design rules:
-    - Gemini ko har domain nahi bhejna.
-    - Caller sirf already-filtered candidates bheje.
-    - Same content hash dobara analyze nahi hoga.
-    - Local cache use hogi.
-    - Daily/request budget configurable hai.
-    - Gemini ko minimum compact evidence bheji jayegi.
-    - API key sirf environment variable se li jayegi.
-    - APK mein API key kabhi nahi honi chahiye.
+Design:
+- Gemini ko har domain nahi bhejna.
+- Same content hash dobara analyze nahi hoga.
+- Thread-safe cache and request budget.
+- Daily/request hard limits.
+- Compact evidence only.
+- API key environment variable se.
+- APK mein API key nahi.
 """
 
 import hashlib
 import json
 import os
 import re
+import threading
 import time
 from datetime import datetime, timezone
 
+import requests
 
-# ============================================================
-# CONFIGURATION
-# ============================================================
+============================================================
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+CONFIGURATION
 
-GEMINI_MODEL = os.getenv(
-    "GEMINI_MODEL",
-    "gemini-2.5-flash",
+============================================================
+
+GEMINI_API_KEY = os.getenv(
+"GEMINI_API_KEY",
+"",
 ).strip()
 
-GEMINI_DAILY_LIMIT = int(
-    os.getenv("GEMINI_DAILY_LIMIT", "50")
+GEMINI_MODEL = os.getenv(
+"GEMINI_MODEL",
+"gemini-2.5-flash",
+).strip()
+
+GEMINI_DAILY_LIMIT = max(
+0,
+int(os.getenv("GEMINI_DAILY_LIMIT", "50")),
 )
 
-GEMINI_MAX_REQUESTS = int(
-    os.getenv("GEMINI_MAX_REQUESTS", "10")
+GEMINI_MAX_REQUESTS = max(
+0,
+int(os.getenv("GEMINI_MAX_REQUESTS", "10")),
 )
 
 GEMINI_CACHE_FILE = os.getenv(
-    "GEMINI_CACHE_FILE",
-    "data/gemini_cache.json",
+"GEMINI_CACHE_FILE",
+"data/gemini_cache.json",
 )
 
-GEMINI_REQUEST_DELAY = float(
-    os.getenv("GEMINI_REQUEST_DELAY", "2.0")
+GEMINI_REQUEST_DELAY = max(
+0.0,
+float(os.getenv("GEMINI_REQUEST_DELAY", "2.0")),
 )
 
-GEMINI_MAX_EVIDENCE_ITEMS = int(
-    os.getenv("GEMINI_MAX_EVIDENCE_ITEMS", "12")
+GEMINI_MAX_EVIDENCE_ITEMS = max(
+1,
+int(os.getenv("GEMINI_MAX_EVIDENCE_ITEMS", "12")),
 )
 
-GEMINI_MAX_EVIDENCE_CHARS = int(
-    os.getenv("GEMINI_MAX_EVIDENCE_CHARS", "4500")
+GEMINI_MAX_EVIDENCE_CHARS = max(
+500,
+int(os.getenv("GEMINI_MAX_EVIDENCE_CHARS", "4500")),
 )
 
+GEMINI_HTTP_TIMEOUT = max(
+5,
+int(os.getenv("GEMINI_HTTP_TIMEOUT", "30")),
+)
 
-# ============================================================
-# TIME HELPERS
-# ============================================================
+GEMINI_MAX_RETRIES = max(
+0,
+int(os.getenv("GEMINI_MAX_RETRIES", "1")),
+)
+
+============================================================
+
+GLOBAL LOCK
+
+============================================================
+
+Queue concurrent ho sakti hai, lekin cache/budget mutation
+
+ek waqt mein sirf ek thread karega.
+
+_CACHE_LOCK = threading.RLock()
+
+============================================================
+
+TIME HELPERS
+
+============================================================
 
 def utc_now():
-    return datetime.now(timezone.utc).replace(
-        microsecond=0
-    ).isoformat()
-
+return datetime.now(
+timezone.utc
+).replace(
+microsecond=0
+).isoformat()
 
 def utc_date():
-    return datetime.now(timezone.utc).strftime(
-        "%Y-%m-%d"
-    )
+return datetime.now(
+timezone.utc
+).strftime(
+"%Y-%m-%d"
+)
 
+============================================================
 
-# ============================================================
-# JSON HELPERS
-# ============================================================
+JSON HELPERS
+
+============================================================
 
 def load_json(path, default):
-    if not os.path.exists(path):
-        return default
+if not os.path.exists(path):
+return default
 
-    try:
-        with open(path, "r", encoding="utf-8") as file:
-            return json.load(file)
-    except (
-        OSError,
-        json.JSONDecodeError,
-    ):
-        return default
-
-
-def save_json(path, data):
-    directory = os.path.dirname(path)
-
-    if directory:
-        os.makedirs(directory, exist_ok=True)
-
-    temporary_path = path + ".tmp"
-
+try:
     with open(
-        temporary_path,
-        "w",
+        path,
+        "r",
         encoding="utf-8",
     ) as file:
-        json.dump(
-            data,
-            file,
-            indent=2,
-            ensure_ascii=False,
-        )
+        return json.load(file)
 
-    os.replace(
-        temporary_path,
-        path,
+except (
+    OSError,
+    json.JSONDecodeError,
+):
+    return default
+
+def save_json(path, data):
+directory = os.path.dirname(path)
+
+if directory:
+    os.makedirs(
+        directory,
+        exist_ok=True,
     )
 
+temporary_path = (
+    path + ".tmp"
+)
 
-# ============================================================
-# CACHE
-# ============================================================
+with open(
+    temporary_path,
+    "w",
+    encoding="utf-8",
+) as file:
+    json.dump(
+        data,
+        file,
+        indent=2,
+        ensure_ascii=False,
+    )
+
+os.replace(
+    temporary_path,
+    path,
+)
+
+============================================================
+
+CACHE
+
+============================================================
 
 def load_cache():
-    cache = load_json(
-        GEMINI_CACHE_FILE,
-        {},
-    )
+cache = load_json(
+GEMINI_CACHE_FILE,
+{},
+)
 
-    if not isinstance(cache, dict):
-        return {
-            "meta": {},
-            "analyses": {},
-        }
+if not isinstance(
+    cache,
+    dict,
+):
+    cache = {}
 
-    if not isinstance(
-        cache.get("meta"),
-        dict,
-    ):
-        cache["meta"] = {}
+if not isinstance(
+    cache.get("meta"),
+    dict,
+):
+    cache["meta"] = {}
 
-    if not isinstance(
-        cache.get("analyses"),
-        dict,
-    ):
-        cache["analyses"] = {}
+if not isinstance(
+    cache.get("analyses"),
+    dict,
+):
+    cache["analyses"] = {}
 
-    return cache
-
+return cache
 
 def save_cache(cache):
+with _CACHE_LOCK:
+save_json(
+GEMINI_CACHE_FILE,
+cache,
+)
+
+============================================================
+
+CONTENT HASH
+
+============================================================
+
+def make_content_hash(value):
+if isinstance(
+value,
+bytes,
+):
+raw = value
+else:
+raw = str(
+value or ""
+).encode(
+"utf-8",
+errors="replace",
+)
+
+return hashlib.sha256(
+    raw
+).hexdigest()
+
+============================================================
+
+REQUEST BUDGET
+
+============================================================
+
+def get_daily_usage(cache):
+today = utc_date()
+
+meta = cache.setdefault(
+    "meta",
+    {},
+)
+
+if meta.get("date") != today:
+    meta["date"] = today
+    meta["requests_today"] = 0
+
+try:
+    usage = int(
+        meta.get(
+            "requests_today",
+            0,
+        )
+    )
+except (
+    TypeError,
+    ValueError,
+):
+    usage = 0
+
+meta["requests_today"] = max(
+    0,
+    usage,
+)
+
+return meta["requests_today"]
+
+def get_effective_limit():
+limits = []
+
+if GEMINI_DAILY_LIMIT > 0:
+    limits.append(
+        GEMINI_DAILY_LIMIT
+    )
+
+if GEMINI_MAX_REQUESTS > 0:
+    limits.append(
+        GEMINI_MAX_REQUESTS
+    )
+
+if not limits:
+    return 0
+
+return min(limits)
+
+def reserve_request(cache):
+"""
+Atomic budget reservation.
+
+Important:
+    can_make_request() + register_request()
+    ko separate calls nahi rakha gaya.
+    Is function mein check + increment ek lock ke
+    andar hota hai.
+"""
+
+with _CACHE_LOCK:
+    usage = get_daily_usage(
+        cache
+    )
+
+    limit = get_effective_limit()
+
+    if limit <= 0:
+        return False
+
+    if usage >= limit:
+        return False
+
+    cache["meta"][
+        "requests_today"
+    ] = usage + 1
+
+    cache["meta"][
+        "last_request_at"
+    ] = utc_now()
+
     save_json(
         GEMINI_CACHE_FILE,
         cache,
     )
 
-
-# ============================================================
-# CONTENT HASH
-# ============================================================
-
-def make_content_hash(value):
-    """
-    Evidence/content ko stable SHA-256 hash deta hai.
-    Same content dobara Gemini ko bhejne se bachne ke
-    liye use hota hai.
-    """
-
-    if isinstance(value, bytes):
-        raw = value
-    else:
-        raw = str(value or "").encode(
-            "utf-8",
-            errors="replace",
-        )
-
-    return hashlib.sha256(raw).hexdigest()
-
-
-# ============================================================
-# REQUEST BUDGET
-# ============================================================
-
-def get_daily_usage(cache):
-    today = utc_date()
-
-    meta = cache.setdefault(
-        "meta",
-        {},
-    )
-
-    if meta.get("date") != today:
-        meta["date"] = today
-        meta["requests_today"] = 0
-
-    try:
-        return int(
-            meta.get(
-                "requests_today",
-                0,
-            )
-        )
-    except (
-        TypeError,
-        ValueError,
-    ):
-        meta["requests_today"] = 0
-        return 0
-
-
-def can_make_request(cache):
-    usage = get_daily_usage(cache)
-
-    if usage >= GEMINI_DAILY_LIMIT:
-        return False
-
-    if GEMINI_MAX_REQUESTS > 0 and usage >= GEMINI_MAX_REQUESTS:
-        return False
-
     return True
 
+def can_make_request(cache):
+with _CACHE_LOCK:
+usage = get_daily_usage(
+cache
+)
 
-def register_request(cache):
-    get_daily_usage(cache)
+    limit = get_effective_limit()
 
-    cache["meta"]["requests_today"] = (
-        int(
-            cache["meta"].get(
-                "requests_today",
-                0,
-            )
-        )
-        + 1
-    )
+    if limit <= 0:
+        return False
 
-    cache["meta"]["last_request_at"] = utc_now()
+    return usage < limit
 
-    save_cache(cache)
+============================================================
 
+TEXT HELPERS
 
-# ============================================================
-# EVIDENCE COMPACTION
-# ============================================================
+============================================================
 
 def clean_text(value):
-    if not value:
-        return ""
+if not value:
+return ""
 
-    value = re.sub(
-        r"\s+",
-        " ",
-        str(value),
-    )
+value = re.sub(
+    r"\s+",
+    " ",
+    str(value),
+)
 
-    return value.strip()
+return value.strip()
 
+============================================================
+
+EVIDENCE COMPACTION
+
+============================================================
 
 def compact_evidence(result):
-    """
-    Python scanner ke detailed result ko Gemini ke liye
-    compact payload mein convert karta hai.
+if not isinstance(
+result,
+dict,
+):
+return {
+"domain": "",
+"python_score": 0,
+"signals": [],
+"evidence": [],
+}
 
-    Gemini ko complete webpage HTML nahi bhejna.
-    """
-
-    if not isinstance(result, dict):
-        return {
-            "domain": "",
-            "python_score": 0,
-            "signals": [],
-            "evidence": [],
-        }
-
-    domain = clean_text(
-        result.get("domain", "")
+domain = clean_text(
+    result.get(
+        "domain",
+        "",
     )
+)
 
-    python_score = result.get(
+python_score = result.get(
+    "python_score",
+    result.get(
         "score",
-        result.get(
-            "python_score",
-            0,
-        ),
-    )
+        0,
+    ),
+)
 
-    signals = result.get(
-        "signals",
-        [],
-    )
+signals = result.get(
+    "signals",
+    [],
+)
 
-    if not isinstance(
-        signals,
-        list,
+if not isinstance(
+    signals,
+    list,
+):
+    signals = []
+
+evidence_source = result.get(
+    "evidence",
+    [],
+)
+
+if not isinstance(
+    evidence_source,
+    list,
+):
+    evidence_source = []
+
+compact_items = []
+
+for item in evidence_source:
+    if isinstance(
+        item,
+        dict,
     ):
-        signals = []
+        text = clean_text(
+            item.get(
+                "text",
+                item.get(
+                    "snippet",
+                    "",
+                ),
+            )
+        )
 
-    evidence_source = result.get(
-        "evidence",
-        [],
-    )
+        category = clean_text(
+            item.get(
+                "category",
+                "",
+            )
+        )
 
-    if not isinstance(
-        evidence_source,
-        list,
+        keyword = clean_text(
+            item.get(
+                "keyword",
+                "",
+            )
+        )
+
+        if text:
+            compact_items.append(
+                {
+                    "category": category,
+                    "keyword": keyword,
+                    "text": text[:500],
+                }
+            )
+
+    elif isinstance(
+        item,
+        str,
     ):
-        evidence_source = []
+        text = clean_text(
+            item
+        )
 
-    compact_items = []
-
-    for item in evidence_source:
-        if isinstance(item, dict):
-            text = clean_text(
-                item.get(
-                    "text",
-                    item.get(
-                        "snippet",
-                        "",
-                    ),
-                )
+        if text:
+            compact_items.append(
+                {
+                    "category": "",
+                    "keyword": "",
+                    "text": text[:500],
+                }
             )
 
-            category = clean_text(
-                item.get(
-                    "category",
-                    "",
-                )
-            )
+    if (
+        len(compact_items)
+        >= GEMINI_MAX_EVIDENCE_ITEMS
+    ):
+        break
 
-            keyword = clean_text(
-                item.get(
-                    "keyword",
-                    "",
-                )
-            )
+payload = {
+    "domain": domain,
+    "python_score": python_score,
+    "signals": signals[:20],
+    "evidence": compact_items,
+}
 
-            if text:
-                compact_items.append(
-                    {
-                        "category": category,
-                        "keyword": keyword,
-                        "text": text[:500],
-                    }
-                )
-
-        elif isinstance(item, str):
-            text = clean_text(item)
-
-            if text:
-                compact_items.append(
-                    {
-                        "category": "",
-                        "keyword": "",
-                        "text": text[:500],
-                    }
-                )
-
-        if len(compact_items) >= GEMINI_MAX_EVIDENCE_ITEMS:
-            break
-
-    payload = {
-        "domain": domain,
-        "python_score": python_score,
-        "signals": signals[:20],
-        "evidence": compact_items,
-    }
-
-    serialized = json.dumps(
-        payload,
-        ensure_ascii=False,
-        separators=(",", ":"),
+def serialized_size():
+    return len(
+        json.dumps(
+            payload,
+            ensure_ascii=False,
+            separators=(
+                ",",
+                ":",
+            ),
+        )
     )
 
-    if len(serialized) > GEMINI_MAX_EVIDENCE_CHARS:
-        while (
-            compact_items
-            and len(
-                json.dumps(
-                    {
-                        **payload,
-                        "evidence": compact_items,
-                    },
-                    ensure_ascii=False,
-                    separators=(",", ":"),
-                )
-            ) > GEMINI_MAX_EVIDENCE_CHARS
-        ):
-            compact_items.pop()
+while (
+    compact_items
+    and serialized_size()
+    > GEMINI_MAX_EVIDENCE_CHARS
+):
+    compact_items.pop()
 
-        payload["evidence"] = compact_items
+return payload
 
-    return payload
+============================================================
 
+PROMPT
 
-# ============================================================
-# GEMINI PROMPT
-# ============================================================
+============================================================
 
 def build_prompt(compact_data):
-    """
-    Gemini ko strict JSON classification task deta hai.
-    """
-
-    return f"""
+return f"""
 You are the secondary classification engine for LD76 Domain Finder.
 
-Your task is defensive web research and website classification.
-
-Do NOT assume that a keyword alone proves fraud.
-Classify only from the supplied evidence.
+This is defensive web research and website classification.
 
 The Python scanner has already filtered this website.
-You are receiving compact evidence, not the complete webpage.
+Use ONLY the supplied evidence.
+
+Do not assume a keyword alone proves fraud.
+Do not invent facts, payment methods, profit percentages,
+investment plans, or website behavior.
 
 Return ONLY valid JSON.
 Do not use Markdown.
-Do not add explanations outside the JSON.
+Do not add text outside the JSON.
 
-Required JSON schema:
+Required schema:
 
 {{
-  "classification": "high_risk_investment|investment_related|payment_or_finance|unclear|not_relevant",
-  "confidence": 0,
-  "investment_signals": [],
-  "payment_methods": [],
-  "profit_claims": [],
-  "deposit_withdrawal": {{
-    "deposit": false,
-    "withdrawal": false
-  }},
-  "referral_signals": [],
-  "communication_channels": [],
-  "reason": ""
+"classification": "high_risk_investment|investment_related|payment_or_finance|unclear|not_relevant",
+"confidence": 0,
+"investment_signals": [],
+"payment_methods": [],
+"profit_claims": [],
+"deposit_withdrawal": {{
+"deposit": false,
+"withdrawal": false
+}},
+"referral_signals": [],
+"communication_channels": [],
+"reason": ""
 }}
 
 Rules:
 
 1. confidence must be an integer from 0 to 100.
-2. Keep arrays short and evidence-based.
-3. Do not invent payment methods.
-4. Do not invent profit percentages.
-5. If evidence contains negative statements such as
-   "not an investment" or "do not invest", consider them.
-6. "investment" by itself does not automatically mean high risk.
-7. High-risk classification should require multiple meaningful
+2. Arrays must contain only evidence-supported items.
+3. Never invent payment methods.
+4. Never invent profit percentages.
+5. Negative statements such as "not an investment" must be considered.
+6. The word "investment" alone does not prove high risk.
+7. High-risk classification should normally require multiple meaningful
    signals such as investment + profit/return + deposit/withdrawal,
    referral, or similar financial mechanics.
 8. If evidence is insufficient, use "unclear".
-9. This is website classification, not a legal determination.
-10. Keep "reason" concise.
+9. This is not a legal determination.
+10. Keep reason concise.
 
 Python scanner data:
 
 {json.dumps(
-    compact_data,
-    ensure_ascii=False,
-    indent=2,
+compact_data,
+ensure_ascii=False,
+indent=2,
 )}
 """.strip()
 
+============================================================
 
-# ============================================================
-# GEMINI API
-# ============================================================
+GEMINI API CALL
+
+============================================================
 
 def call_gemini(prompt):
-    """
-    Gemini API call.
+if not GEMINI_API_KEY:
+return {
+"success": False,
+"error": "GEMINI_API_KEY is not configured.",
+}
 
-    API key environment variable se li jati hai.
-    Agar key missing ho to request nahi ki jati.
+url = (
+    "https://generativelanguage.googleapis.com/"
+    f"v1beta/models/{GEMINI_MODEL}:generateContent"
+)
 
-    REST endpoint use kiya gaya hai taake analyzer ko
-    SDK-specific implementation se loosely coupled rakha ja sake.
-    """
+headers = {
+    "Content-Type": "application/json",
+    "x-goog-api-key": GEMINI_API_KEY,
+}
 
-    if not GEMINI_API_KEY:
-        return {
-            "success": False,
-            "error": "GEMINI_API_KEY is not configured.",
+body = {
+    "contents": [
+        {
+            "parts": [
+                {
+                    "text": prompt,
+                }
+            ]
         }
+    ],
+    "generationConfig": {
+        "temperature": 0,
+        "responseMimeType": "application/json",
+    },
+}
 
-    try:
-        import requests
-    except ImportError:
-        return {
-            "success": False,
-            "error": "requests package is not installed.",
-        }
+last_error = ""
 
-    url = (
-        "https://generativelanguage.googleapis.com/"
-        f"v1beta/models/{GEMINI_MODEL}:generateContent"
-    )
-
-    headers = {
-        "Content-Type": "application/json",
-        "x-goog-api-key": GEMINI_API_KEY,
-    }
-
-    body = {
-        "contents": [
-            {
-                "parts": [
-                    {
-                        "text": prompt,
-                    }
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0,
-            "responseMimeType": "application/json",
-        },
-    }
-
+for attempt in range(
+    GEMINI_MAX_RETRIES + 1
+):
     try:
         response = requests.post(
             url,
             headers=headers,
             json=body,
-            timeout=30,
+            timeout=GEMINI_HTTP_TIMEOUT,
         )
 
     except requests.RequestException as exc:
-        return {
-            "success": False,
-            "error": f"Gemini request failed: {exc}",
-        }
-
-    if response.status_code != 200:
-        return {
-            "success": False,
-            "error": (
-                f"Gemini HTTP {response.status_code}: "
-                f"{response.text[:500]}"
-            ),
-        }
-
-    try:
-        data = response.json()
-    except ValueError:
-        return {
-            "success": False,
-            "error": "Gemini returned invalid JSON.",
-        }
-
-    return {
-        "success": True,
-        "data": data,
-    }
-
-
-# ============================================================
-# GEMINI RESPONSE PARSER
-# ============================================================
-
-def extract_text_from_response(data):
-    try:
-        candidates = data.get(
-            "candidates",
-            [],
+        last_error = (
+            f"Gemini request failed: {exc}"
         )
 
-        if not candidates:
-            return ""
-
-        content = candidates[0].get(
-            "content",
-            {},
-        )
-
-        parts = content.get(
-            "parts",
-            [],
-        )
-
-        texts = []
-
-        for part in parts:
-            if isinstance(part, dict):
-                text = part.get(
-                    "text",
-                    "",
+        if attempt < GEMINI_MAX_RETRIES:
+            time.sleep(
+                min(
+                    5.0,
+                    2.0 ** attempt,
                 )
+            )
+            continue
 
-                if text:
-                    texts.append(
-                        str(text)
-                    )
+        return {
+            "success": False,
+            "error": last_error,
+        }
 
-        return "\n".join(texts).strip()
+    if response.status_code == 200:
+        try:
+            data = response.json()
 
-    except (
-        AttributeError,
-        TypeError,
-    ):
-        return ""
+        except ValueError:
+            return {
+                "success": False,
+                "error": "Gemini returned invalid JSON.",
+            }
 
+        return {
+            "success": True,
+            "data": data,
+        }
 
-def parse_json_response(text):
-    """
-    Gemini normally direct JSON return karega.
-
-    Safety ke liye accidental code fences bhi remove
-    kiye jate hain.
-    """
-
-    if not text:
-        return None
-
-    text = text.strip()
-
-    if text.startswith("```"):
-        text = re.sub(
-            r"^```(?:json)?\s*",
-            "",
-            text,
-            flags=re.IGNORECASE,
-        )
-
-        text = re.sub(
-            r"\s*```$",
-            "",
-            text,
-        )
-
-    try:
-        parsed = json.loads(text)
-
-        if isinstance(parsed, dict):
-            return parsed
-
-    except json.JSONDecodeError:
-        pass
-
-    return None
-
-
-# ============================================================
-# RESULT NORMALIZATION
-# ============================================================
-
-def normalize_result(result):
-    if not isinstance(
-        result,
-        dict,
-    ):
-        return None
-
-    classification = clean_text(
-        result.get(
-            "classification",
-            "unclear",
-        )
+    last_error = (
+        f"Gemini HTTP {response.status_code}: "
+        f"{response.text[:500]}"
     )
 
-    allowed = {
-        "high_risk_investment",
-        "investment_related",
-        "payment_or_finance",
-        "unclear",
-        "not_relevant",
-    }
-
-    if classification not in allowed:
-        classification = "unclear"
-
-    try:
-        confidence = int(
-            result.get(
-                "confidence",
-                0,
+    # Retry only transient errors.
+    if response.status_code in {
+        429,
+        500,
+        502,
+        503,
+        504,
+    } and attempt < GEMINI_MAX_RETRIES:
+        time.sleep(
+            min(
+                10.0,
+                2.0 ** attempt,
             )
         )
-    except (
-        TypeError,
-        ValueError,
-    ):
-        confidence = 0
+        continue
 
-    confidence = max(
-        0,
-        min(
-            100,
-            confidence,
-        ),
-    )
+    return {
+        "success": False,
+        "error": last_error,
+    }
 
-    def clean_list(value):
-        if not isinstance(
-            value,
-            list,
-        ):
-            return []
+return {
+    "success": False,
+    "error": last_error or "Unknown Gemini error.",
+}
 
-        cleaned = []
+============================================================
 
-        for item in value[:10]:
-            item = clean_text(item)
+RESPONSE PARSING
 
-            if item:
-                cleaned.append(item)
+============================================================
 
-        return cleaned
+def extract_text_from_response(data):
+try:
+candidates = data.get(
+"candidates",
+[],
+)
 
-    deposit_withdrawal = result.get(
-        "deposit_withdrawal",
+    if not candidates:
+        return ""
+
+    content = candidates[0].get(
+        "content",
         {},
     )
 
-    if not isinstance(
-        deposit_withdrawal,
-        dict,
-    ):
-        deposit_withdrawal = {}
-
-    return {
-        "classification": classification,
-        "confidence": confidence,
-        "investment_signals": clean_list(
-            result.get(
-                "investment_signals",
-                [],
-            )
-        ),
-        "payment_methods": clean_list(
-            result.get(
-                "payment_methods",
-                [],
-            )
-        ),
-        "profit_claims": clean_list(
-            result.get(
-                "profit_claims",
-                [],
-            )
-        ),
-        "deposit_withdrawal": {
-            "deposit": bool(
-                deposit_withdrawal.get(
-                    "deposit",
-                    False,
-                )
-            ),
-            "withdrawal": bool(
-                deposit_withdrawal.get(
-                    "withdrawal",
-                    False,
-                )
-            ),
-        },
-        "referral_signals": clean_list(
-            result.get(
-                "referral_signals",
-                [],
-            )
-        ),
-        "communication_channels": clean_list(
-            result.get(
-                "communication_channels",
-                [],
-            )
-        ),
-        "reason": clean_text(
-            result.get(
-                "reason",
-                "",
-            )
-        )[:1000],
-    }
-
-
-# ============================================================
-# MAIN ANALYZER
-# ============================================================
-
-def analyze_candidate(
-    scanner_result,
-    *,
-    force=False,
-):
-    """
-    Strong Python candidate ko Gemini se analyze karta hai.
-
-    force=True sirf intentional manual re-analysis ke liye hai.
-
-    Normal flow:
-        candidate
-        -> content hash
-        -> cache check
-        -> budget check
-        -> Gemini
-        -> cache
-        -> result
-    """
-
-    if not isinstance(
-        scanner_result,
-        dict,
-    ):
-        return {
-            "success": False,
-            "status": "invalid_input",
-            "error": "Scanner result must be a dictionary.",
-        }
-
-    compact_data = compact_evidence(
-        scanner_result
+    parts = content.get(
+        "parts",
+        [],
     )
 
-    domain = compact_data.get(
+    texts = []
+
+    for part in parts:
+        if not isinstance(
+            part,
+            dict,
+        ):
+            continue
+
+        text = part.get(
+            "text",
+            "",
+        )
+
+        if text:
+            texts.append(
+                str(text)
+            )
+
+    return "\n".join(
+        texts
+    ).strip()
+
+except (
+    AttributeError,
+    TypeError,
+    IndexError,
+):
+    return ""
+
+def parse_json_response(text):
+if not text:
+return None
+
+text = text.strip()
+
+if text.startswith("```"):
+    text = re.sub(
+        r"^```(?:json)?\s*",
+        "",
+        text,
+        flags=re.IGNORECASE,
+    )
+
+    text = re.sub(
+        r"\s*```$",
+        "",
+        text,
+    )
+
+try:
+    parsed = json.loads(
+        text
+    )
+
+    if isinstance(
+        parsed,
+        dict,
+    ):
+        return parsed
+
+except json.JSONDecodeError:
+    pass
+
+return None
+
+============================================================
+
+RESULT NORMALIZATION
+
+============================================================
+
+def normalize_result(result):
+if not isinstance(
+result,
+dict,
+):
+return None
+
+allowed_classifications = {
+    "high_risk_investment",
+    "investment_related",
+    "payment_or_finance",
+    "unclear",
+    "not_relevant",
+}
+
+classification = clean_text(
+    result.get(
+        "classification",
+        "unclear",
+    )
+)
+
+if (
+    classification
+    not in allowed_classifications
+):
+    classification = "unclear"
+
+try:
+    confidence = int(
+        result.get(
+            "confidence",
+            0,
+        )
+    )
+except (
+    TypeError,
+    ValueError,
+):
+    confidence = 0
+
+confidence = max(
+    0,
+    min(
+        100,
+        confidence,
+    ),
+)
+
+def clean_list(value):
+    if not isinstance(
+        value,
+        list,
+    ):
+        return []
+
+    cleaned = []
+
+    for item in value[:10]:
+        item = clean_text(
+            item
+        )
+
+        if item:
+            cleaned.append(
+                item
+            )
+
+    return cleaned
+
+deposit_withdrawal = result.get(
+    "deposit_withdrawal",
+    {},
+)
+
+if not isinstance(
+    deposit_withdrawal,
+    dict,
+):
+    deposit_withdrawal = {}
+
+reason = clean_text(
+    result.get(
+        "reason",
+        "",
+    )
+)[:1000]
+
+return {
+    "classification": classification,
+    "confidence": confidence,
+    "investment_signals": clean_list(
+        result.get(
+            "investment_signals",
+            [],
+        )
+    ),
+    "payment_methods": clean_list(
+        result.get(
+            "payment_methods",
+            [],
+        )
+    ),
+    "profit_claims": clean_list(
+        result.get(
+            "profit_claims",
+            [],
+        )
+    ),
+    "deposit_withdrawal": {
+        "deposit": bool(
+            deposit_withdrawal.get(
+                "deposit",
+                False,
+            )
+        ),
+        "withdrawal": bool(
+            deposit_withdrawal.get(
+                "withdrawal",
+                False,
+            )
+        ),
+    },
+    "referral_signals": clean_list(
+        result.get(
+            "referral_signals",
+            [],
+        )
+    ),
+    "communication_channels": clean_list(
+        result.get(
+            "communication_channels",
+            [],
+        )
+    ),
+    "reason": reason,
+}
+
+============================================================
+
+MAIN ANALYSIS
+
+============================================================
+
+def analyze_candidate(
+scanner_result,
+*,
+force=False,
+):
+if not isinstance(
+scanner_result,
+dict,
+):
+return {
+"success": False,
+"status": "invalid_candidate",
+"domain": "",
+}
+
+domain = clean_text(
+    scanner_result.get(
         "domain",
         "",
     )
+)
 
-    if not domain:
-        return {
-            "success": False,
-            "status": "invalid_input",
-            "error": "Candidate domain is missing.",
-        }
+if not domain:
+    return {
+        "success": False,
+        "status": "missing_domain",
+        "domain": "",
+    }
 
-    # Prefer the scanner's real content hash.
-    content_hash = clean_text(
-        scanner_result.get(
-            "content_hash",
-            "",
+compact_data = compact_evidence(
+    scanner_result
+)
+
+# Content hash evidence + scanner content hash.
+source_hash = clean_text(
+    scanner_result.get(
+        "content_hash",
+        "",
+    )
+)
+
+if not source_hash:
+    source_hash = make_content_hash(
+        json.dumps(
+            compact_data,
+            ensure_ascii=False,
+            sort_keys=True,
         )
     )
 
-    if not content_hash:
-        content_hash = make_content_hash(
-            json.dumps(
-                compact_data,
-                ensure_ascii=False,
-                sort_keys=True,
-            )
-        )
+# --------------------------------------------------------
+# CACHE CHECK
+# --------------------------------------------------------
 
+with _CACHE_LOCK:
     cache = load_cache()
 
-    analyses = cache.setdefault(
+    cached = cache.get(
         "analyses",
-        {},
+        {}
+    ).get(
+        source_hash
     )
 
-    cached = analyses.get(
-        content_hash
-    )
-
-    if cached and not force:
+    if (
+        cached
+        and not force
+    ):
         return {
             "success": True,
             "status": "cache_hit",
-            "cached": True,
             "domain": domain,
-            "content_hash": content_hash,
+            "content_hash": source_hash,
             "analysis": cached.get(
                 "analysis"
             ),
         }
 
-    if not GEMINI_API_KEY:
-        return {
-            "success": False,
-            "status": "not_configured",
-            "domain": domain,
-            "content_hash": content_hash,
-            "error": "GEMINI_API_KEY is not configured.",
-        }
+# --------------------------------------------------------
+# API KEY CHECK
+# --------------------------------------------------------
 
-    if not can_make_request(cache):
+if not GEMINI_API_KEY:
+    return {
+        "success": False,
+        "status": "missing_api_key",
+        "domain": domain,
+        "content_hash": source_hash,
+    }
+
+# --------------------------------------------------------
+# ATOMIC REQUEST RESERVATION
+# --------------------------------------------------------
+
+with _CACHE_LOCK:
+    cache = load_cache()
+
+    if not reserve_request(
+        cache
+    ):
         return {
             "success": False,
             "status": "budget_exhausted",
             "domain": domain,
-            "content_hash": content_hash,
-            "error": "Gemini request budget exhausted.",
+            "content_hash": source_hash,
         }
 
-    # Small delay between requests.
-    last_request_at = cache.get(
-        "meta",
-        {},
-    ).get(
-        "last_request_at"
+# --------------------------------------------------------
+# REQUEST DELAY
+# --------------------------------------------------------
+
+if GEMINI_REQUEST_DELAY > 0:
+    time.sleep(
+        GEMINI_REQUEST_DELAY
     )
 
-    if last_request_at:
-        try:
-            last_timestamp = datetime.fromisoformat(
-                last_request_at
-            ).timestamp()
+# --------------------------------------------------------
+# API CALL
+# --------------------------------------------------------
 
-            elapsed = time.time() - last_timestamp
+prompt = build_prompt(
+    compact_data
+)
 
-            if elapsed < GEMINI_REQUEST_DELAY:
-                time.sleep(
-                    GEMINI_REQUEST_DELAY - elapsed
-                )
+api_result = call_gemini(
+    prompt
+)
 
-        except (
-            ValueError,
-            TypeError,
-        ):
-            pass
-
-    prompt = build_prompt(
-        compact_data
-    )
-
-    register_request(
-        cache
-    )
-
-    api_result = call_gemini(
-        prompt
-    )
-
-    if not api_result.get(
-        "success"
-    ):
-        return {
-            "success": False,
-            "status": "api_error",
-            "domain": domain,
-            "content_hash": content_hash,
-            "error": api_result.get(
-                "error",
-                "Unknown Gemini error.",
-            ),
-        }
-
-    response_text = extract_text_from_response(
-        api_result.get(
-            "data",
-            {},
-        )
-    )
-
-    parsed = parse_json_response(
-        response_text
-    )
-
-    if parsed is None:
-        return {
-            "success": False,
-            "status": "invalid_model_response",
-            "domain": domain,
-            "content_hash": content_hash,
-            "error": "Gemini response could not be parsed as JSON.",
-            "raw_response": response_text[:2000],
-        }
-
-    normalized = normalize_result(
-        parsed
-    )
-
-    if normalized is None:
-        return {
-            "success": False,
-            "status": "invalid_model_result",
-            "domain": domain,
-            "content_hash": content_hash,
-            "error": "Gemini result normalization failed.",
-        }
-
-    # Cache by content hash.
-    analyses[content_hash] = {
+if not api_result.get(
+    "success"
+):
+    return {
+        "success": False,
+        "status": "api_error",
         "domain": domain,
-        "content_hash": content_hash,
-        "analyzed_at": utc_now(),
-        "model": GEMINI_MODEL,
-        "analysis": normalized,
+        "content_hash": source_hash,
+        "error": api_result.get(
+            "error",
+            "Unknown Gemini error.",
+        ),
     }
+
+# --------------------------------------------------------
+# PARSE
+# --------------------------------------------------------
+
+response_text = extract_text_from_response(
+    api_result.get(
+        "data",
+        {},
+    )
+)
+
+parsed = parse_json_response(
+    response_text
+)
+
+normalized = normalize_result(
+    parsed
+)
+
+if normalized is None:
+    return {
+        "success": False,
+        "status": "invalid_model_response",
+        "domain": domain,
+        "content_hash": source_hash,
+    }
+
+# --------------------------------------------------------
+# CACHE SUCCESSFUL ANALYSIS
+# --------------------------------------------------------
+
+cache_entry = {
+    "domain": domain,
+    "content_hash": source_hash,
+    "analyzed_at": utc_now(),
+    "model": GEMINI_MODEL,
+    "analysis": normalized,
+}
+
+with _CACHE_LOCK:
+    cache = load_cache()
+
+    cache.setdefault(
+        "analyses",
+        {},
+    )[source_hash] = cache_entry
 
     save_cache(
         cache
     )
 
+return {
+    "success": True,
+    "status": "analyzed",
+    "domain": domain,
+    "content_hash": source_hash,
+    "analysis": normalized,
+}
+
+============================================================
+
+STATUS
+
+============================================================
+
+def get_gemini_status():
+with _CACHE_LOCK:
+cache = load_cache()
+usage = get_daily_usage(
+cache
+)
+
+    limit = get_effective_limit()
+
     return {
-        "success": True,
-        "status": "analyzed",
-        "cached": False,
-        "domain": domain,
-        "content_hash": content_hash,
-        "analysis": normalized,
+        "configured": bool(
+            GEMINI_API_KEY
+        ),
+        "model": GEMINI_MODEL,
+        "requests_today": usage,
+        "request_limit": limit,
+        "remaining": max(
+            0,
+            limit - usage,
+        ),
+        "cache_entries": len(
+            cache.get(
+                "analyses",
+                {},
+            )
+        ),
     }
 
+============================================================
 
-# ============================================================
-# SIMPLE TEST
-# ============================================================
+STANDALONE TEST
 
-if __name__ == "__main__":
-    print("LD76 Gemini Analyzer")
-    print("--------------------")
+============================================================
 
-    if GEMINI_API_KEY:
-        print("API key: configured")
-    else:
-        print("API key: NOT configured")
+if name == "main":
+status = get_gemini_status()
 
-    print(f"Model: {GEMINI_MODEL}")
-    print(f"Daily limit: {GEMINI_DAILY_LIMIT}")
-    print(f"Request limit: {GEMINI_MAX_REQUESTS}")
-    print(f"Cache: {GEMINI_CACHE_FILE}")
-
-    cache = load_cache()
-
-    print(
-        "Requests today:",
-        get_daily_usage(cache),
-    )
-
-    print(
-        "Budget available:",
-        can_make_request(cache),
-                 )
+print(
+    "LD76 Gemini Analyzer"
+)
+print(
+    "--------------------"
+)
+print(
+    "Configured:",
+    status["configured"],
+)
+print(
+    "Model:",
+    status["model"],
+)
+print(
+    "Requests today:",
+    status["requests_today"],
+)
+print(
+    "Request limit:",
+    status["request_limit"],
+)
+print(
+    "Remaining:",
+    status["remaining"],
+)
+print(
+    "Cache entries:",
+    status["cache_entries"],
+)
