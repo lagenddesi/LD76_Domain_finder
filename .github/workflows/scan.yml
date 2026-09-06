@@ -102,8 +102,14 @@ jobs:
           git config user.email "bot@github.com"
 
           git add data/results.json
-          git add data/scan_history.json
-          git add data/gemini_cache.json
+
+          if [ -f data/scan_history.json ]; then
+            git add data/scan_history.json
+          fi
+
+          if [ -f data/gemini_cache.json ]; then
+            git add data/gemini_cache.json
+          fi
 
           if git diff --cached --quiet; then
             echo "No scanner data changes to commit."
