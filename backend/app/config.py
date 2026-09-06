@@ -203,10 +203,10 @@ def resolve_project_path(
 value: str,
 ) -> Path:
 """
-Resolve a configured path.
+Resolve a configured project-relative path.
 
 Absolute paths are preserved.
-Relative paths are resolved from the repository root.
+Relative paths are resolved from repository root.
 """
 
 path = Path(value)
@@ -228,15 +228,15 @@ def validate_security_config() -> None:
 """
 Validate security-critical configuration.
 
-Development can run without production secrets.
+Development can run without production secrets so local
+testing remains easy.
 
-Production requires:
+Production must have:
     API_SECRET_KEY
     ANDROID_API_KEY
 """
 
 if APP_ENV == "production":
-
     if not API_SECRET_KEY:
         raise RuntimeError(
             "API_SECRET_KEY must be configured in production."
