@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import desc, select
+from sqlalchemy import desc, or_, select
 from sqlalchemy.orm import Session
 
 from ..database import get_db
@@ -24,12 +24,52 @@ def get_results(
     db: Session = Depends(get_db),
     limit: int = Query(default=50, ge=1, le=500),
     min_score: float = Query(default=0, ge=0, le=100),
+    min_gemini_score: float | None = Query(
+        default=None,
+        ge=0,
+        le=100,
+    ),
+    classification: str | None = Query(
+        default=None,
+        min_length=1,
+        max_length=100,
+    ),
+    search: str | None = Query(
+        default=None,
+        min_length=1,
+        max_length=253,
+    ),
 ):
+    query = select(DomainResult).where(
+        DomainResult.python_score >= min_score
+    )
+
+    if min_gemini_score is not None:
+        query = query.where(
+            DomainResult.gemini_score >= min_gemini_score
+        )
+
+    if classification:
+        query = query.where(
+            DomainResult.classification.ilike(
+                classification.strip()
+            )
+        )
+
+    if search:
+        search_term = f"%{search.strip().lower()}%"
+        query = query.where(
+            or_(
+                DomainResult.domain.ilike(search_term),
+                DomainResult.title.ilike(search_term),
+            )
+        )
+
     results = db.scalars(
-        select(DomainResult)
-        .where(DomainResult.python_score >= min_score)
+        query
         .order_by(
             desc(DomainResult.python_score),
+            desc(DomainResult.gemini_score),
             desc(DomainResult.last_scan),
         )
         .limit(limit)
@@ -50,6 +90,12 @@ def get_result(
     db: Session = Depends(get_db),
 ):
     normalized_domain = domain.strip().lower()
+
+    if not normalized_domain:
+        raise HTTPException(
+            status_code=400,
+            detail="Domain is required.",
+        )
 
     result = db.scalar(
         select(DomainResult).where(
