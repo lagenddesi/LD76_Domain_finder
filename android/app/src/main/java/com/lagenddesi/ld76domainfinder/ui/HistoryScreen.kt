@@ -51,7 +51,7 @@ fun HistoryScreen(
                 items(
                     items = history,
                     key = { item ->
-                        item.id
+                        item.id ?: "${item.started_at}_${item.status}"
                     },
                 ) { item ->
                     HistoryCard(item)
@@ -72,7 +72,7 @@ private fun HistoryCard(
             modifier = Modifier.padding(14.dp),
         ) {
             Text(
-                text = "Scan #${item.id}",
+                text = "Scan #${item.id ?: "Unknown"}",
                 style = MaterialTheme.typography.titleMedium,
             )
 
