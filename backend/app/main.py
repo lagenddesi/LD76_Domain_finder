@@ -14,7 +14,7 @@ from .config import (
 )
 from .database import Base, engine
 from .rate_limit import limiter
-from .routers import rescan, results, scans
+from .routers import rescan, results, scans, stats
 
 
 @asynccontextmanager
@@ -36,8 +36,8 @@ app = FastAPI(
 )
 
 
-# Register the single shared SlowAPI limiter.
 app.state.limiter = limiter
+
 app.add_exception_handler(
     RateLimitExceeded,
     _rate_limit_exceeded_handler,
@@ -60,6 +60,7 @@ app.add_middleware(
 app.include_router(results.router)
 app.include_router(scans.router)
 app.include_router(rescan.router)
+app.include_router(stats.router)
 
 
 @app.get("/")
