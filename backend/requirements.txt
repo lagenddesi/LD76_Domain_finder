@@ -6,3 +6,5 @@ sqlalchemy
 slowapi
 pytest
 httpx
+requests
+beautifulsoup4
