@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -24,8 +25,8 @@ class DomainResultResponse(BaseModel):
     classification: str | None = None
     reason: str | None = None
 
-    evidence: list = Field(default_factory=list)
-    signals: list = Field(default_factory=list)
+    evidence: list[Any] = Field(default_factory=list)
+    signals: list[Any] = Field(default_factory=list)
 
 
 class ScanHistoryResponse(BaseModel):
@@ -58,3 +59,10 @@ class ScanStatusResponse(BaseModel):
     candidates_found: int
 
     error_message: str | None = None
+
+
+class RescanResponse(BaseModel):
+    scan_id: int
+    status: str
+    domain: str
+    message: str
