@@ -19,6 +19,7 @@ class ScanManager:
     """Manage background full and targeted scanner jobs."""
 
     SCAN_TIMEOUT_SECONDS = 60 * 60
+    PYTHON_CANDIDATE_THRESHOLD = 60
 
     def __init__(self) -> None:
         self._lock = threading.RLock()
@@ -105,8 +106,6 @@ class ScanManager:
         command_type: str,
         domain: str | None = None,
     ) -> None:
-        self._set_running(scan_id)
-
         try:
             project_root = self._project_root()
 
@@ -211,12 +210,7 @@ class ScanManager:
         )
 
         if not results_file.is_file():
-            return {
-                "saved": 0,
-                "discovered": 0,
-                "scanned": 0,
-                "candidates": 0,
-            }
+            return self._empty_sync_info()
 
         try:
             with results_file.open(
@@ -226,27 +220,11 @@ class ScanManager:
                 results = json.load(file)
 
         except (OSError, json.JSONDecodeError):
-            return {
-                "saved": 0,
-                "discovered": 0,
-                "scanned": 0,
-                "candidates": 0,
-            }
+            return self._empty_sync_info()
 
         if not isinstance(results, list):
-            return {
-                "saved": 0,
-                "discovered": 0,
-                "scanned": 0,
-                "candidates": 0,
-            }
+            return self._empty_sync_info()
 
-        # Full scan:
-        # results.json contains the complete persistent result set.
-        #
-        # Targeted rescan:
-        # only synchronize the requested domain instead of pretending
-        # that the entire historical result set was scanned again.
         if command_type == "targeted":
             normalized = (
                 str(domain or "")
@@ -264,7 +242,9 @@ class ScanManager:
             ]
 
             domains_discovered = 1
-            domains_scanned = 1 if sync_results else 0
+            domains_scanned = (
+                1 if sync_results else 0
+            )
 
         else:
             sync_results = [
@@ -276,24 +256,19 @@ class ScanManager:
             domains_discovered = len(sync_results)
             domains_scanned = len(sync_results)
 
+        candidates_found = sum(
+            1
+            for result in sync_results
+            if self._python_score(result)
+            >= self.PYTHON_CANDIDATE_THRESHOLD
+        )
+
         db = SessionLocal()
 
         try:
             saved = save_domain_results(
                 db,
                 sync_results,
-            )
-
-            candidates_found = sum(
-                1
-                for result in sync_results
-                if float(
-                    result.get(
-                        "python_score",
-                        result.get("score", 0),
-                    )
-                    or 0
-                ) >= 60
             )
 
             update_scan_history(
@@ -315,17 +290,28 @@ class ScanManager:
             "candidates": candidates_found,
         }
 
-    def _set_running(self, scan_id: int) -> None:
-        db = SessionLocal()
+    @staticmethod
+    def _python_score(
+        result: dict[str, Any],
+    ) -> float:
+        value = result.get(
+            "python_score",
+            result.get("score", 0),
+        )
 
         try:
-            update_scan_history(
-                db,
-                scan_id,
-                status="running",
-            )
-        finally:
-            db.close()
+            return float(value or 0)
+        except (TypeError, ValueError):
+            return 0.0
+
+    @staticmethod
+    def _empty_sync_info() -> dict[str, int]:
+        return {
+            "saved": 0,
+            "discovered": 0,
+            "scanned": 0,
+            "candidates": 0,
+        }
 
     def _finish_scan(
         self,
@@ -334,22 +320,24 @@ class ScanManager:
         status: str,
         error_message: str | None = None,
     ) -> None:
-        db = SessionLocal()
-
         try:
-            update_scan_history(
-                db,
-                scan_id,
-                status=status,
-                error_message=error_message,
-                finished=True,
-            )
-        finally:
-            db.close()
+            db = SessionLocal()
 
-        with self._lock:
-            if self._running_scan_id == scan_id:
-                self._running_scan_id = None
+            try:
+                update_scan_history(
+                    db,
+                    scan_id,
+                    status=status,
+                    error_message=error_message,
+                    finished=True,
+                )
+            finally:
+                db.close()
+
+        finally:
+            with self._lock:
+                if self._running_scan_id == scan_id:
+                    self._running_scan_id = None
 
     @staticmethod
     def _project_root() -> Path:
