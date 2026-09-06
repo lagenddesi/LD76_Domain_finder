@@ -1,3 +1,34 @@
+"""
+LD76 Domain Finder
+Main Scanner Engine - Phase 2 Gemini Integration
+
+Pipeline:
+
+    Domain Discovery
+        ↓
+    Normalize / Deduplicate
+        ↓
+    HTTP Check
+        ↓
+    HTML/Text Extraction
+        ↓
+    Python Signal Detection
+        ↓
+    Python Scoring
+        ↓
+    Strong Candidates
+        ↓
+    Gemini Queue
+        ↓
+    Gemini Classification
+        ↓
+    Results + History
+
+Important:
+    Gemini ko har domain nahi bhejna.
+    Python maximum filtering karega.
+"""
+
 import hashlib
 import json
 import os
@@ -13,35 +44,96 @@ from urllib3.util.retry import Retry
 
 
 # ============================================================
-# LD76 DOMAIN FINDER
-# Phase 1 - Python Scanner Engine
+# CONFIGURATION
 # ============================================================
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+DOMAIN_TLD = os.getenv(
+    "DOMAIN_TLD",
+    "top",
+).strip().lower()
 
-RESULTS_FILE = os.path.join(DATA_DIR, "results.json")
-HISTORY_FILE = os.path.join(DATA_DIR, "scan_history.json")
-
-TLD = os.getenv("DOMAIN_TLD", "top")
-
-DISCOVERY_LIMIT = int(os.getenv("DISCOVERY_LIMIT", "200"))
-
-REQUEST_TIMEOUT = float(os.getenv("REQUEST_TIMEOUT", "8"))
-MAX_RESPONSE_BYTES = int(
-    os.getenv("MAX_RESPONSE_BYTES", str(2 * 1024 * 1024))
+DISCOVERY_LIMIT = int(
+    os.getenv(
+        "DISCOVERY_LIMIT",
+        "200",
+    )
 )
 
-CRTSH_TIMEOUT = float(os.getenv("CRTSH_TIMEOUT", "30"))
+REQUEST_TIMEOUT = int(
+    os.getenv(
+        "REQUEST_TIMEOUT",
+        "8",
+    )
+)
 
-MIN_SCORE = int(os.getenv("PYTHON_MIN_SCORE", "60"))
-RESULT_SCORE = int(os.getenv("PYTHON_RESULT_SCORE", "80"))
+CRTSH_TIMEOUT = int(
+    os.getenv(
+        "CRTSH_TIMEOUT",
+        "30",
+    )
+)
 
-SCAN_DELAY = float(os.getenv("SCAN_DELAY", "0.25"))
+MAX_RESPONSE_BYTES = int(
+    os.getenv(
+        "MAX_RESPONSE_BYTES",
+        "2097152",
+    )
+)
 
-USER_AGENT = os.getenv(
+PYTHON_MIN_SCORE = int(
+    os.getenv(
+        "PYTHON_MIN_SCORE",
+        "60",
+    )
+)
+
+PYTHON_RESULT_SCORE = int(
+    os.getenv(
+        "PYTHON_RESULT_SCORE",
+        "80",
+    )
+)
+
+SCAN_DELAY = float(
+    os.getenv(
+        "SCAN_DELAY",
+        "0.25",
+    )
+)
+
+SCANNER_USER_AGENT = os.getenv(
     "SCANNER_USER_AGENT",
-    "LD76-Domain-Finder/1.0 (+domain-security-research)"
+    "LD76-Domain-Finder/1.0 (+domain-security-research)",
+)
+
+ENABLE_GEMINI = os.getenv(
+    "ENABLE_GEMINI",
+    "true",
+).strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
+GEMINI_FORCE_REANALYSIS = os.getenv(
+    "GEMINI_FORCE_REANALYSIS",
+    "false",
+).strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+
+RESULTS_FILE = os.getenv(
+    "RESULTS_FILE",
+    "data/results.json",
+)
+
+HISTORY_FILE = os.getenv(
+    "HISTORY_FILE",
+    "data/scan_history.json",
 )
 
 
@@ -49,338 +141,442 @@ USER_AGENT = os.getenv(
 # SIGNAL MATRIX
 # ============================================================
 
-SIGNALS = {
+SIGNAL_GROUPS = {
     "investment": {
-        "weight": 20,
+        "weight": 30,
         "keywords": [
-            "investment",
-            "invest",
             "investment plan",
             "investment package",
-            "investment program",
-            "invest plan",
-            "deposit plan",
-            "capital",
-            "roi",
+            "invest now",
+            "invest today",
+            "investment",
+            "invest",
+            "investing",
+            "capital plan",
+            "fund plan",
         ],
     },
 
     "profit": {
-        "weight": 25,
+        "weight": 30,
         "keywords": [
             "daily profit",
             "daily return",
             "daily income",
             "daily earning",
-            "weekly profit",
-            "weekly return",
-            "monthly profit",
-            "monthly return",
             "guaranteed profit",
             "guaranteed return",
+            "fixed profit",
             "fixed return",
             "high return",
+            "high profit",
+            "profit rate",
+            "return on investment",
+            "roi",
             "passive income",
-            "profit plan",
+            "earn daily",
+            "earn every day",
         ],
     },
 
     "deposit": {
-        "weight": 15,
+        "weight": 20,
         "keywords": [
             "deposit",
-            "minimum deposit",
             "min deposit",
-            "make deposit",
-            "deposit now",
-            "fund account",
-            "add money",
+            "minimum deposit",
+            "make a deposit",
+            "fund your account",
+            "recharge account",
             "recharge",
+            "add funds",
+            "top up",
+            "top-up",
         ],
     },
 
     "withdrawal": {
-        "weight": 15,
+        "weight": 20,
         "keywords": [
             "withdraw",
             "withdrawal",
-            "cash out",
-            "minimum withdrawal",
-            "min withdrawal",
-            "withdraw funds",
             "withdraw money",
+            "withdraw funds",
+            "cash out",
+            "payout",
+            "minimum withdrawal",
+            "withdraw profit",
         ],
     },
 
     "referral": {
-        "weight": 10,
+        "weight": 20,
         "keywords": [
-            "referral",
             "referral commission",
-            "team commission",
-            "invite friends",
-            "invite friend",
-            "affiliate",
-            "affiliate commission",
-            "level income",
-            "team income",
             "referral bonus",
+            "referral reward",
+            "invite friends",
+            "invite your friends",
+            "refer and earn",
+            "team commission",
+            "team bonus",
+            "network commission",
+            "affiliate commission",
+            "level commission",
+            "direct bonus",
+            "indirect bonus",
         ],
     },
 
     "crypto": {
-        "weight": 10,
+        "weight": 15,
         "keywords": [
             "usdt",
-            "trc20",
-            "bep20",
-            "erc20",
+            "usdc",
             "bitcoin",
             "btc",
             "ethereum",
             "eth",
-            "crypto",
+            "tron",
+            "trx",
+            "bnb",
+            "binance",
+            "crypto payment",
             "cryptocurrency",
             "wallet address",
         ],
     },
 
     "pk_payment": {
-        "weight": 10,
+        "weight": 20,
         "keywords": [
             "easypaisa",
             "easy paisa",
             "jazzcash",
             "jazz cash",
             "nayapay",
+            "naya pay",
             "sadapay",
+            "sada pay",
             "raast",
             "mobicash",
-            "meezan bank",
             "hbl",
             "ubl",
-            "bank alfalah",
             "alfalah",
+            "meezan bank",
             "pkr",
             "rs.",
-            "rupees",
+            "rs ",
         ],
     },
 
     "vip": {
         "weight": 15,
         "keywords": [
-            "vip plan",
-            "vip investment",
+            "vip 1",
+            "vip 2",
+            "vip 3",
             "vip level",
+            "vip membership",
             "vip package",
             "premium plan",
-            "premium investment",
+            "level 1",
+            "level 2",
+            "level 3",
         ],
     },
 
     "communication": {
-        "weight": 5,
+        "weight": 10,
         "keywords": [
+            "chat.whatsapp.com",
+            "wa.me/",
+            "t.me/",
             "telegram",
             "whatsapp",
-            "support group",
-            "telegram group",
-            "telegram channel",
-            "whatsapp group",
+            "join our group",
+            "contact support",
+            "customer support",
         ],
     },
 }
 
 
-# Strong combinations receive additional points.
+# ============================================================
+# COMBINATION BONUSES
+# ============================================================
+
 COMBINATION_BONUSES = [
     (
         {"investment", "profit"},
-        15,
-        "investment + profit combination",
+        20,
+        "investment + profit",
     ),
+
     (
         {"investment", "deposit"},
-        10,
-        "investment + deposit combination",
+        15,
+        "investment + deposit",
     ),
+
+    (
+        {"investment", "withdrawal"},
+        15,
+        "investment + withdrawal",
+    ),
+
     (
         {"deposit", "withdrawal"},
+        15,
+        "deposit + withdrawal",
+    ),
+
+    (
+        {"profit", "deposit"},
+        15,
+        "profit + deposit",
+    ),
+
+    (
+        {"profit", "withdrawal"},
+        15,
+        "profit + withdrawal",
+    ),
+
+    (
+        {"investment", "referral"},
+        15,
+        "investment + referral",
+    ),
+
+    (
+        {"deposit", "referral"},
         10,
-        "deposit + withdrawal combination",
+        "deposit + referral",
     ),
+
     (
-        {"profit", "deposit", "withdrawal"},
-        15,
-        "profit + deposit + withdrawal combination",
-    ),
-    (
-        {"investment", "profit", "deposit"},
-        15,
-        "investment + profit + deposit combination",
+        {"profit", "referral"},
+        10,
+        "profit + referral",
     ),
 ]
 
 
-# Negative phrases reduce false positives.
+# ============================================================
+# NEGATIVE / FALSE-POSITIVE PATTERNS
+# ============================================================
+
 NEGATIVE_PATTERNS = [
-    "not an investment",
-    "not an investment service",
-    "not an investment company",
-    "no investment required",
-    "no investment services",
-    "do not invest",
-    "don't invest",
-    "avoid investment",
-    "investment scam warning",
-    "investment scam alert",
-    "beware of investment scams",
-    "we do not offer investment",
-    "we don't offer investment",
+    r"\bnot an investment\b",
+    r"\bnot investment advice\b",
+    r"\bdo not invest\b",
+    r"\bdon't invest\b",
+    r"\bnever invest\b",
+    r"\bno investment required\b",
+    r"\bnot a financial product\b",
+    r"\bnot financial advice\b",
+    r"\bfor educational purposes only\b",
+    r"\bexample investment\b",
 ]
 
 
 # ============================================================
-# HTTP SESSION
+# SESSION
 # ============================================================
 
-def build_session():
-    """
-    Controlled HTTP session.
-
-    Retries sirf temporary/network-level failures ke liye.
-    Infinite retry nahi hoti.
-    """
-
+def create_session():
     session = requests.Session()
 
     retry = Retry(
         total=2,
         connect=2,
         read=2,
-        status=2,
         backoff_factor=0.5,
-        status_forcelist=[429, 500, 502, 503, 504],
-        allowed_methods=frozenset(["GET", "HEAD"]),
+        status_forcelist=[
+            429,
+            500,
+            502,
+            503,
+            504,
+        ],
+        allowed_methods=[
+            "GET",
+        ],
         raise_on_status=False,
     )
 
     adapter = HTTPAdapter(
         max_retries=retry,
-        pool_connections=10,
-        pool_maxsize=10,
+        pool_connections=20,
+        pool_maxsize=20,
     )
 
-    session.mount("http://", adapter)
-    session.mount("https://", adapter)
+    session.mount(
+        "https://",
+        adapter,
+    )
+
+    session.mount(
+        "http://",
+        adapter,
+    )
 
     session.headers.update(
         {
-            "User-Agent": USER_AGENT,
+            "User-Agent": SCANNER_USER_AGENT,
             "Accept": (
                 "text/html,application/xhtml+xml,"
                 "application/xml;q=0.9,*/*;q=0.8"
             ),
-            "Accept-Language": "en-US,en;q=0.8",
         }
     )
 
     return session
 
 
-SESSION = build_session()
-
-
 # ============================================================
-# TIME / JSON HELPERS
+# TIME / HASH HELPERS
 # ============================================================
 
 def utc_now():
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
+    return datetime.now(
+        timezone.utc
+    ).replace(
+        microsecond=0
+    ).isoformat()
 
 
-def load_json(path, default):
-    if not os.path.exists(path):
+def make_hash(value):
+    if isinstance(
+        value,
+        bytes,
+    ):
+        raw = value
+    else:
+        raw = str(
+            value or ""
+        ).encode(
+            "utf-8",
+            errors="replace",
+        )
+
+    return hashlib.sha256(
+        raw
+    ).hexdigest()
+
+
+# ============================================================
+# JSON HELPERS
+# ============================================================
+
+def load_json(
+    path,
+    default,
+):
+    if not os.path.exists(
+        path
+    ):
         return default
 
     try:
-        with open(path, "r", encoding="utf-8") as file:
+        with open(
+            path,
+            "r",
+            encoding="utf-8",
+        ) as file:
             return json.load(file)
-    except (OSError, json.JSONDecodeError):
+
+    except (
+        OSError,
+        json.JSONDecodeError,
+    ):
         return default
 
 
-def save_json(path, data):
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+def save_json(
+    path,
+    data,
+):
+    directory = os.path.dirname(
+        path
+    )
 
-    temporary_path = path + ".tmp"
+    if directory:
+        os.makedirs(
+            directory,
+            exist_ok=True,
+        )
 
-    with open(temporary_path, "w", encoding="utf-8") as file:
-        json.dump(data, file, indent=2, ensure_ascii=False)
+    temporary = (
+        path + ".tmp"
+    )
 
-    os.replace(temporary_path, path)
+    with open(
+        temporary,
+        "w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(
+            data,
+            file,
+            indent=2,
+            ensure_ascii=False,
+        )
+
+    os.replace(
+        temporary,
+        path,
+    )
 
 
 # ============================================================
 # DOMAIN NORMALIZATION
 # ============================================================
 
-def normalize_domain(value):
-    """
-    Domain ko canonical form mein convert karta hai.
-
-    Examples:
-        *.example.top
-        https://example.top/path
-        EXAMPLE.TOP
-    ->
-        example.top
-    """
-
+def normalize_domain(
+    value,
+):
     if not value:
-        return None
+        return ""
 
-    value = str(value).strip().lower()
+    value = str(
+        value
+    ).strip().lower()
 
-    if not value:
-        return None
+    value = value.replace(
+        "*.",
+        "",
+    )
 
-    value = value.replace("\\r", "")
-    value = value.replace("\\n", "")
+    value = value.split(
+        "/"
+    )[0]
 
-    value = value.replace("*.", "")
+    value = value.split(
+        ":"
+    )[0]
 
-    if "://" in value:
-        try:
-            value = urlparse(value).hostname or ""
-        except Exception:
-            return None
+    value = value.strip(
+        "."
+    )
 
-    value = value.split("/")[0]
-    value = value.split("?")[0]
-    value = value.split("#")[0]
-    value = value.split(":")[0]
+    if (
+        not value
+        or " " in value
+    ):
+        return ""
 
-    value = value.strip(". ")
-
-    if not value:
-        return None
-
-    # Basic hostname validation.
-    if len(value) > 253:
-        return None
-
-    if not re.fullmatch(
-        r"(?=.{1,253}$)"
-        r"(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+"
-        r"[a-z]{2,63}",
+    if not re.match(
+        r"^[a-z0-9.-]+$",
         value,
     ):
-        return None
+        return ""
 
-    if not value.endswith("." + TLD):
-        return None
+    if not value.endswith(
+        "." + DOMAIN_TLD
+    ):
+        return ""
 
     return value
 
@@ -389,148 +585,136 @@ def normalize_domain(value):
 # DOMAIN DISCOVERY
 # ============================================================
 
-def get_recent_domains(tld=TLD):
+def get_recent_domains(
+    tld=None,
+):
     """
-    crt.sh se certificate transparency data fetch karta hai.
+    crt.sh se certificate transparency records leta hai.
 
     Important:
-    crt.sh ke latest array entries ko blindly "new domains"
-    assume nahi karta. Returned certificates ke timestamps ko
-    use karke records sort kiye jate hain.
+        Last 100 raw rows ko simply "new domains" nahi mana jata.
+        Certificate timestamp ko use karke candidates sort kiye jate hain.
     """
 
-    print(f"[*] Discovering .{tld} domains from crt.sh...")
+    tld = (
+        tld
+        or DOMAIN_TLD
+    )
 
-    url = f"https://crt.sh/?q=%25.{tld}&output=json"
+    print(
+        f"[*] Fetching .{tld} domains from crt.sh..."
+    )
+
+    url = (
+        "https://crt.sh/"
+        f"?q=%.{tld}"
+        "&output=json"
+    )
 
     try:
-        response = SESSION.get(
+        response = requests.get(
             url,
             timeout=CRTSH_TIMEOUT,
+            headers={
+                "User-Agent": SCANNER_USER_AGENT,
+            },
         )
 
         if response.status_code != 200:
             print(
-                f"[!] crt.sh returned HTTP "
-                f"{response.status_code}"
+                "[!] crt.sh HTTP",
+                response.status_code,
             )
             return []
 
         data = response.json()
 
-        if not isinstance(data, list):
-            print("[!] Unexpected crt.sh response format.")
-            return []
-
-    except requests.RequestException as exc:
-        print(f"[!] crt.sh request failed: {exc}")
+    except Exception as exc:
+        print(
+            "[!] crt.sh error:",
+            exc,
+        )
         return []
 
-    except ValueError as exc:
-        print(f"[!] crt.sh JSON parsing failed: {exc}")
-        return []
-
-    domain_dates = {}
+    discovered = {}
 
     for item in data:
-        if not isinstance(item, dict):
+        if not isinstance(
+            item,
+            dict,
+        ):
             continue
 
-        name_value = item.get("name_value", "")
-
         timestamp = (
-            item.get("entry_timestamp")
-            or item.get("not_before")
+            item.get(
+                "entry_timestamp"
+            )
+            or item.get(
+                "not_before"
+            )
             or ""
         )
 
-        for raw_domain in str(name_value).splitlines():
-            domain = normalize_domain(raw_domain)
+        names = str(
+            item.get(
+                "name_value",
+                "",
+            )
+        )
+
+        for raw_name in names.split(
+            "\n"
+        ):
+            domain = normalize_domain(
+                raw_name
+            )
 
             if not domain:
                 continue
 
-            previous = domain_dates.get(domain)
+            current = discovered.get(
+                domain
+            )
 
-            if previous is None or str(timestamp) > str(previous):
-                domain_dates[domain] = timestamp
+            if (
+                current is None
+                or str(timestamp)
+                > str(
+                    current
+                )
+            ):
+                discovered[
+                    domain
+                ] = timestamp
 
-    sorted_domains = sorted(
-        domain_dates.items(),
-        key=lambda item: str(item[1]),
+    ordered = sorted(
+        discovered.items(),
+        key=lambda item: str(
+            item[1]
+        ),
         reverse=True,
     )
 
     domains = [
         domain
-        for domain, _timestamp in sorted_domains[:DISCOVERY_LIMIT]
+        for domain, _ in ordered[
+            :DISCOVERY_LIMIT
+        ]
     ]
-
-    print(f"[*] Unique normalized domains: {len(domain_dates)}")
-    print(f"[*] Domains selected for scanning: {len(domains)}")
 
     return domains
 
 
 # ============================================================
-# HISTORY
+# HTTP FETCH
 # ============================================================
 
-def load_history():
-    history = load_json(HISTORY_FILE, {})
-
-    if not isinstance(history, dict):
-        return {}
-
-    return history
-
-
-def get_history_record(history, domain):
-    record = history.get(domain)
-
-    if isinstance(record, dict):
-        return record
-
-    return {}
-
-
-def update_history(
-    history,
+def fetch_site(
+    session,
     domain,
-    *,
-    scan_time,
-    status,
-    http_status=None,
-    python_score=0,
-    content_hash=None,
-    error=None,
 ):
-    existing = get_history_record(history, domain)
-
-    first_seen = existing.get("first_seen") or scan_time
-
-    history[domain] = {
-        "domain": domain,
-        "first_seen": first_seen,
-        "last_seen": scan_time,
-        "last_scan": scan_time,
-        "status": status,
-        "http_status": http_status,
-        "python_score": python_score,
-        "content_hash": content_hash,
-        "error": error,
-    }
-
-
-# ============================================================
-# WEBSITE FETCH
-# ============================================================
-
-def fetch_site(domain):
     """
     HTTPS first, HTTP fallback.
-
-    Scanner kisi ek failed domain ki wajah se crash nahi hota.
     """
 
     urls = [
@@ -538,164 +722,169 @@ def fetch_site(domain):
         f"http://{domain}",
     ]
 
-    last_error = None
-
     for url in urls:
         try:
-            response = SESSION.get(
+            response = session.get(
                 url,
                 timeout=REQUEST_TIMEOUT,
                 allow_redirects=True,
                 stream=True,
             )
 
-            status_code = response.status_code
+        except requests.RequestException:
+            continue
 
-            content_type = (
-                response.headers.get("Content-Type", "")
-                .lower()
+        if response.status_code < 200:
+            response.close()
+            continue
+
+        if response.status_code >= 400:
+            response.close()
+            continue
+
+        content_type = (
+            response.headers.get(
+                "Content-Type",
+                "",
+            ).lower()
+        )
+
+        if content_type:
+            allowed = (
+                "text/html",
+                "application/xhtml+xml",
+                "text/plain",
             )
 
-            if status_code >= 400:
-                response.close()
-                last_error = f"HTTP {status_code}"
-                continue
-
-            if content_type and not (
-                "text/html" in content_type
-                or "application/xhtml+xml" in content_type
+            if not any(
+                item in content_type
+                for item in allowed
             ):
                 response.close()
-                return {
-                    "success": False,
-                    "status": "non_html",
-                    "http_status": status_code,
-                    "url": response.url,
-                    "error": f"Non-HTML content: {content_type}",
-                }
+                continue
 
+        try:
             chunks = []
-            total_bytes = 0
+            total = 0
 
             for chunk in response.iter_content(
-                chunk_size=16384,
-                decode_unicode=False,
+                chunk_size=65536
             ):
                 if not chunk:
                     continue
 
-                remaining = MAX_RESPONSE_BYTES - total_bytes
+                remaining = (
+                    MAX_RESPONSE_BYTES
+                    - total
+                )
 
                 if remaining <= 0:
                     break
 
-                chunk = chunk[:remaining]
+                chunk = chunk[
+                    :remaining
+                ]
 
-                chunks.append(chunk)
-                total_bytes += len(chunk)
+                chunks.append(
+                    chunk
+                )
 
-                if total_bytes >= MAX_RESPONSE_BYTES:
+                total += len(
+                    chunk
+                )
+
+                if total >= MAX_RESPONSE_BYTES:
                     break
 
+            content = b"".join(
+                chunks
+            )
+
+        except requests.RequestException:
+            response.close()
+            continue
+
+        finally:
             response.close()
 
-            raw_content = b"".join(chunks)
+        if not content:
+            continue
 
-            encoding = response.encoding or "utf-8"
+        encoding = (
+            response.encoding
+            or "utf-8"
+        )
 
-            try:
-                html = raw_content.decode(
-                    encoding,
-                    errors="replace",
-                )
-            except LookupError:
-                html = raw_content.decode(
-                    "utf-8",
-                    errors="replace",
-                )
+        try:
+            html = content.decode(
+                encoding,
+                errors="replace",
+            )
+        except (
+            LookupError,
+        ):
+            html = content.decode(
+                "utf-8",
+                errors="replace",
+            )
 
-            return {
-                "success": True,
-                "status": "active",
-                "http_status": status_code,
-                "url": response.url,
-                "content_type": content_type,
-                "html": html,
-                "bytes": total_bytes,
-            }
+        return {
+            "url": response.url,
+            "status_code": response.status_code,
+            "content_type": content_type,
+            "html": html,
+        }
 
-        except requests.RequestException as exc:
-            last_error = str(exc)
-
-    return {
-        "success": False,
-        "status": "failed",
-        "http_status": None,
-        "url": None,
-        "error": last_error or "Unknown request error",
-    }
+    return None
 
 
 # ============================================================
-# CONTENT EXTRACTION
+# TEXT EXTRACTION
 # ============================================================
 
-def clean_text(value):
+def clean_text(
+    value,
+):
     if not value:
         return ""
 
-    value = re.sub(r"\s+", " ", str(value))
+    value = re.sub(
+        r"\s+",
+        " ",
+        str(value),
+    )
+
     return value.strip()
 
 
-def unique_strings(values, max_items=50):
-    result = []
-    seen = set()
-
-    for value in values:
-        value = clean_text(value)
-
-        if not value:
-            continue
-
-        key = value.lower()
-
-        if key in seen:
-            continue
-
-        seen.add(key)
-        result.append(value)
-
-        if len(result) >= max_items:
-            break
-
-    return result
-
-
-def extract_content(html):
+def extract_site_content(
+    html,
+):
     """
-    Website se sirf relevant human-readable evidence extract karta hai.
-
-    Raw HTML Gemini ko future mein nahi bhejna.
+    Important content areas ko priority ke saath extract karta hai.
     """
 
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(
+        html,
+        "html.parser",
+    )
 
-    # Completely useless/non-visible areas.
     for tag in soup(
         [
             "script",
             "style",
             "noscript",
-            "template",
             "svg",
-            "canvas",
+            "template",
         ]
     ):
         tag.decompose()
 
     title = clean_text(
-        soup.title.get_text(" ", strip=True)
+        soup.title.get_text(
+            " ",
+            strip=True,
+        )
         if soup.title
         else ""
     )
@@ -704,64 +893,129 @@ def extract_content(html):
 
     meta = soup.find(
         "meta",
-        attrs={"name": re.compile("^description$", re.I)},
+        attrs={
+            "name": re.compile(
+                r"^description$",
+                re.IGNORECASE,
+            )
+        },
     )
 
     if meta:
         meta_description = clean_text(
-            meta.get("content", "")
+            meta.get(
+                "content",
+                "",
+            )
         )
 
-    headings = unique_strings(
-        [
-            tag.get_text(" ", strip=True)
-            for tag in soup.find_all(
-                ["h1", "h2", "h3", "h4"]
-            )
-        ],
-        max_items=40,
-    )
+    headings = []
 
-    buttons = unique_strings(
+    for tag in soup.find_all(
         [
-            tag.get_text(" ", strip=True)
-            for tag in soup.find_all(
-                ["button", "a", "input"]
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+        ]
+    ):
+        text = clean_text(
+            tag.get_text(
+                " ",
+                strip=True,
             )
-        ],
-        max_items=80,
-    )
+        )
+
+        if text:
+            headings.append(
+                text
+            )
+
+    buttons = []
+
+    for tag in soup.find_all(
+        [
+            "button",
+            "a",
+            "input",
+        ]
+    ):
+        text = clean_text(
+            tag.get(
+                "value",
+                "",
+            )
+            or tag.get_text(
+                " ",
+                strip=True,
+            )
+        )
+
+        if text:
+            buttons.append(
+                text
+            )
 
     forms = []
 
-    for form in soup.find_all("form"):
-        form_text = clean_text(
-            form.get_text(" ", strip=True)
+    for form in soup.find_all(
+        "form"
+    ):
+        text = clean_text(
+            form.get_text(
+                " ",
+                strip=True,
+            )
         )
 
-        if form_text:
-            forms.append(form_text)
+        if text:
+            forms.append(
+                text
+            )
 
-    forms = unique_strings(forms, max_items=30)
-
-    body_text = clean_text(
-        soup.get_text(" ", strip=True)
+    body = clean_text(
+        soup.get_text(
+            " ",
+            strip=True,
+        )
     )
 
-    # Avoid absurdly large stored evidence.
-    body_text = body_text[:100000]
+    # Limit individual sections to keep memory/payload sane.
+    title = title[:1000]
+    meta_description = meta_description[:2000]
 
-    # Compact searchable corpus.
-    corpus_parts = [
-        title,
-        meta_description,
-        " ".join(headings),
-        " ".join(buttons),
-        " ".join(forms),
-        body_text,
+    headings = headings[
+        :50
     ]
 
-    corpus = clean_text(" ".join(corpus_parts))
+    buttons = buttons[
+        :100
+    ]
+
+    forms = forms[
+        :50
+    ]
+
+    body = body[
+        :30000
+    ]
+
+    combined = "\n".join(
+        [
+            title,
+            meta_description,
+            "\n".join(
+                headings
+            ),
+            "\n".join(
+                buttons
+            ),
+            "\n".join(
+                forms
+            ),
+            body,
+        ]
+    )
 
     return {
         "title": title,
@@ -769,467 +1023,911 @@ def extract_content(html):
         "headings": headings,
         "buttons": buttons,
         "forms": forms,
-        "body_text": body_text,
-        "corpus": corpus,
+        "body": body,
+        "combined_text": combined,
     }
 
 
 # ============================================================
-# CONTENT HASH
+# NEGATIVE CONTEXT
 # ============================================================
 
-def calculate_content_hash(content):
+def is_negative_context(
+    text,
+    keyword,
+):
     """
-    Normalized evidence ka SHA-256 hash.
+    Keyword ke around negative phrase check karta hai.
 
-    Future Gemini phase mein:
-        same hash -> Gemini SKIP
-        changed hash -> Gemini re-analysis
+    Example:
+        "This is NOT an investment platform."
+
+    Isay direct investment signal nahi banana.
     """
 
-    normalized = re.sub(
-        r"\s+",
-        " ",
-        content.get("corpus", "").lower(),
-    ).strip()
+    text = str(
+        text or ""
+    ).lower()
 
-    return hashlib.sha256(
-        normalized.encode("utf-8", errors="ignore")
-    ).hexdigest()
+    keyword = str(
+        keyword or ""
+    ).lower()
+
+    position = text.find(
+        keyword
+    )
+
+    if position < 0:
+        return False
+
+    start = max(
+        0,
+        position - 180,
+    )
+
+    end = min(
+        len(text),
+        position + len(keyword) + 180,
+    )
+
+    context = text[
+        start:end
+    ]
+
+    for pattern in NEGATIVE_PATTERNS:
+        if re.search(
+            pattern,
+            context,
+            flags=re.IGNORECASE,
+        ):
+            return True
+
+    return False
 
 
 # ============================================================
 # SIGNAL MATCHING
 # ============================================================
 
-def find_keyword_context(text, keyword, window=90):
+def find_signal_matches(
+    extracted,
+):
     """
-    Matched keyword ke around short evidence snippet return karta hai.
-    """
+    Har signal group ke keywords ko scan karta hai.
 
-    if not text or not keyword:
-        return None
-
-    text_lower = text.lower()
-    keyword_lower = keyword.lower()
-
-    position = text_lower.find(keyword_lower)
-
-    if position == -1:
-        return None
-
-    start = max(0, position - window)
-    end = min(
-        len(text),
-        position + len(keyword) + window,
-    )
-
-    snippet = clean_text(text[start:end])
-
-    return snippet
-
-
-def keyword_is_negative(text, keyword):
-    """
-    Keyword ke nearby context ko inspect karta hai.
-
-    Example:
-        "we do not offer investment services"
-
-    ko positive investment signal nahi banana.
+    Returns:
+        signal names
+        matched keywords
+        evidence snippets
     """
 
-    if not text:
-        return False
+    sections = [
+        (
+            "title",
+            extracted.get(
+                "title",
+                "",
+            ),
+        ),
+        (
+            "meta_description",
+            extracted.get(
+                "meta_description",
+                "",
+            ),
+        ),
+        (
+            "headings",
+            "\n".join(
+                extracted.get(
+                    "headings",
+                    [],
+                )
+            ),
+        ),
+        (
+            "buttons",
+            "\n".join(
+                extracted.get(
+                    "buttons",
+                    [],
+                )
+            ),
+        ),
+        (
+            "forms",
+            "\n".join(
+                extracted.get(
+                    "forms",
+                    [],
+                )
+            ),
+        ),
+        (
+            "body",
+            extracted.get(
+                "body",
+                "",
+            ),
+        ),
+    ]
 
-    text_lower = text.lower()
-
-    for pattern in NEGATIVE_PATTERNS:
-        if pattern in text_lower:
-            return True
-
-    return False
-
-
-def match_signals(content):
-    corpus = content.get("corpus", "").lower()
-
-    detected = {}
+    signal_names = set()
     matched_keywords = []
     evidence = []
+    seen_keyword = set()
 
-    for signal_name, config in SIGNALS.items():
-        matches = []
+    for category, config in SIGNAL_GROUPS.items():
+        keywords = config.get(
+            "keywords",
+            [],
+        )
 
-        for keyword in config["keywords"]:
-            if keyword.lower() not in corpus:
+        for keyword in keywords:
+            keyword_lower = keyword.lower()
+
+            matched = False
+            matched_section = ""
+            matched_text = ""
+
+            for section_name, section_text in sections:
+                section_text = str(
+                    section_text or ""
+                )
+
+                if keyword_lower not in section_text.lower():
+                    continue
+
+                if is_negative_context(
+                    section_text,
+                    keyword_lower,
+                ):
+                    continue
+
+                matched = True
+                matched_section = section_name
+
+                pos = section_text.lower().find(
+                    keyword_lower
+                )
+
+                start = max(
+                    0,
+                    pos - 100,
+                )
+
+                end = min(
+                    len(section_text),
+                    pos + len(keyword) + 180,
+                )
+
+                matched_text = clean_text(
+                    section_text[
+                        start:end
+                    ]
+                )
+
+                break
+
+            if not matched:
                 continue
 
-            context = find_keyword_context(
-                content.get("body_text", ""),
-                keyword,
+            signal_names.add(
+                category
             )
 
-            # Negative phrase ka direct/global presence ho to
-            # obvious false-positive signal ko suppress karo.
-            if keyword_is_negative(
-                context or ""
-            ):
-                continue
+            if keyword_lower not in seen_keyword:
+                seen_keyword.add(
+                    keyword_lower
+                )
 
-            matches.append(keyword)
-            matched_keywords.append(keyword)
-
-            if context:
-                evidence.append(
+                matched_keywords.append(
                     {
-                        "signal": signal_name,
+                        "category": category,
                         "keyword": keyword,
-                        "context": context,
                     }
                 )
 
-        if matches:
-            detected[signal_name] = {
-                "matched": True,
-                "keywords": unique_strings(matches),
-                "weight": config["weight"],
-            }
+                evidence.append(
+                    {
+                        "category": category,
+                        "keyword": keyword,
+                        "section": matched_section,
+                        "text": matched_text[
+                            :500
+                        ],
+                    }
+                )
 
-    return detected, unique_strings(
+    return (
+        signal_names,
         matched_keywords,
-        max_items=100,
-    ), evidence
+        evidence,
+    )
 
 
 # ============================================================
-# SCORING
+# PYTHON SCORING
 # ============================================================
 
-def calculate_score(detected):
+def calculate_score(
+    signal_names,
+):
     score = 0
-    bonus_signals = []
+    score_breakdown = {}
 
-    signal_names = set(detected.keys())
+    for signal in signal_names:
+        weight = SIGNAL_GROUPS.get(
+            signal,
+            {},
+        ).get(
+            "weight",
+            0,
+        )
 
-    for signal_name, data in detected.items():
-        score += int(data["weight"])
+        score += weight
 
-    for required_signals, bonus, label in COMBINATION_BONUSES:
-        if required_signals.issubset(signal_names):
+        score_breakdown[
+            signal
+        ] = weight
+
+    combination_matches = []
+
+    for required, bonus, label in COMBINATION_BONUSES:
+        if required.issubset(
+            signal_names
+        ):
             score += bonus
 
-            bonus_signals.append(
+            combination_matches.append(
                 {
+                    "signals": sorted(
+                        required
+                    ),
+                    "bonus": bonus,
                     "reason": label,
-                    "points": bonus,
                 }
             )
 
-    # Strong investment-site combination.
-    if (
-        "investment" in signal_names
-        and "profit" in signal_names
-        and "deposit" in signal_names
-        and "withdrawal" in signal_names
-    ):
-        score += 20
-        bonus_signals.append(
-            {
-                "reason": "complete investment transaction pattern",
-                "points": 20,
-            }
-        )
-
-    # Cap is deliberately high enough for future tuning.
-    score = min(score, 200)
-
-    return score, bonus_signals
-
-
-def get_classification(score):
-    if score >= 120:
-        return "very_strong_candidate"
-
-    if score >= 100:
-        return "strong_candidate"
-
-    if score >= 80:
-        return "high_candidate"
-
-    if score >= 60:
-        return "possible_candidate"
-
-    if score >= 30:
-        return "weak_candidate"
-
-    return "irrelevant"
-
-
-# ============================================================
-# SITE ANALYSIS
-# ============================================================
-
-def analyze_site(domain):
-    scan_time = utc_now()
-
-    fetched = fetch_site(domain)
-
-    if not fetched.get("success"):
-        return {
-            "domain": domain,
-            "status": fetched.get("status", "failed"),
-            "http_status": fetched.get("http_status"),
-            "url": fetched.get("url"),
-            "score": 0,
-            "classification": "unavailable",
-            "content_hash": None,
-            "signals": {},
-            "matched_keywords": [],
-            "evidence": [],
-            "scanned_at": scan_time,
-            "error": fetched.get("error"),
-        }
-
-    html = fetched.get("html", "")
-
-    content = extract_content(html)
-
-    content_hash = calculate_content_hash(content)
-
-    detected, matched_keywords, evidence = match_signals(
-        content
+    score = min(
+        score,
+        200,
     )
 
-    score, bonuses = calculate_score(detected)
+    return (
+        score,
+        score_breakdown,
+        combination_matches,
+    )
 
-    classification = get_classification(score)
 
-    signals_output = {}
+def classify_python_score(
+    score,
+):
+    if score >= 130:
+        return "very_strong"
 
-    for name, data in detected.items():
-        signals_output[name] = {
-            "matched": True,
-            "keywords": data["keywords"],
-            "weight": data["weight"],
+    if score >= PYTHON_RESULT_SCORE:
+        return "strong"
+
+    if score >= PYTHON_MIN_SCORE:
+        return "candidate"
+
+    return "weak"
+
+
+# ============================================================
+# SINGLE DOMAIN ANALYSIS
+# ============================================================
+
+def analyze_site(
+    session,
+    domain,
+):
+    """
+    Ek domain ko Python scanner se analyze karta hai.
+    """
+
+    fetched = fetch_site(
+        session,
+        domain,
+    )
+
+    if not fetched:
+        return {
+            "domain": domain,
+            "status": "inactive_or_unreachable",
+            "scanned_at": utc_now(),
         }
+
+    html = fetched.get(
+        "html",
+        "",
+    )
+
+    extracted = extract_site_content(
+        html
+    )
+
+    (
+        signals,
+        matched_keywords,
+        evidence,
+    ) = find_signal_matches(
+        extracted
+    )
+
+    (
+        score,
+        score_breakdown,
+        combination_matches,
+    ) = calculate_score(
+        signals
+    )
+
+    content_hash = make_hash(
+        html
+    )
+
+    classification = classify_python_score(
+        score
+    )
 
     result = {
         "domain": domain,
+        "url": fetched.get(
+            "url",
+            "",
+        ),
+        "http_status": fetched.get(
+            "status_code"
+        ),
+        "content_type": fetched.get(
+            "content_type",
+            "",
+        ),
         "status": "active",
-        "http_status": fetched.get("http_status"),
-        "url": fetched.get("url"),
+        "python_score": score,
         "score": score,
-        "classification": classification,
+        "python_classification": classification,
+        "signals": sorted(
+            signals
+        ),
+        "matched_keywords": matched_keywords[
+            :100
+        ],
+        "score_breakdown": score_breakdown,
+        "combination_bonuses": combination_matches,
+        "evidence": evidence[
+            :100
+        ],
         "content_hash": content_hash,
-
-        "signals": signals_output,
-
-        "matched_keywords": matched_keywords,
-
-        "score_breakdown": {
-            "signals": {
-                name: data["weight"]
-                for name, data in detected.items()
-            },
-            "bonuses": bonuses,
-            "total": score,
-        },
-
-        "evidence": evidence[:100],
-
-        "page": {
-            "title": content["title"],
-            "meta_description": content[
-                "meta_description"
-            ],
-            "headings": content["headings"][:20],
-            "buttons": content["buttons"][:30],
-            "forms": content["forms"][:20],
-        },
-
-        "scanned_at": scan_time,
-        "error": None,
+        "content_length": len(
+            html.encode(
+                "utf-8",
+                errors="replace",
+            )
+        ),
+        "title": extracted.get(
+            "title",
+            "",
+        ),
+        "scanned_at": utc_now(),
+        "gemini_analyzed": False,
     }
 
     return result
 
 
 # ============================================================
-# MAIN SCANNER
+# HISTORY
 # ============================================================
 
-def main():
-    os.makedirs(DATA_DIR, exist_ok=True)
+def load_history():
+    history = load_json(
+        HISTORY_FILE,
+        {},
+    )
 
-    print("=" * 60)
-    print("LD76 DOMAIN FINDER")
-    print("Phase 1 - Python Scanner Engine")
-    print("=" * 60)
+    if not isinstance(
+        history,
+        dict,
+    ):
+        history = {}
 
-    scan_started = utc_now()
+    if not isinstance(
+        history.get(
+            "domains"
+        ),
+        dict,
+    ):
+        history["domains"] = {}
 
-    history = load_history()
+    return history
 
-    existing_results = load_json(
+
+def update_history(
+    history,
+    result,
+):
+    domain = result.get(
+        "domain",
+        "",
+    )
+
+    if not domain:
+        return
+
+    domains = history.setdefault(
+        "domains",
+        {},
+    )
+
+    previous = domains.get(
+        domain,
+        {},
+    )
+
+    if not isinstance(
+        previous,
+        dict,
+    ):
+        previous = {}
+
+    content_hash = result.get(
+        "content_hash",
+        "",
+    )
+
+    previous_hash = previous.get(
+        "content_hash",
+        "",
+    )
+
+    if content_hash:
+        previous[
+            "content_hash"
+        ] = content_hash
+
+    previous[
+        "domain"
+    ] = domain
+
+    if not previous.get(
+        "first_seen"
+    ):
+        previous[
+            "first_seen"
+        ] = result.get(
+            "scanned_at",
+            utc_now(),
+        )
+
+    previous[
+        "last_seen"
+    ] = result.get(
+        "scanned_at",
+        utc_now(),
+    )
+
+    previous[
+        "last_scan"
+    ] = result.get(
+        "scanned_at",
+        utc_now(),
+    )
+
+    previous[
+        "python_score"
+    ] = result.get(
+        "python_score",
+        0,
+    )
+
+    previous[
+        "gemini_score"
+    ] = result.get(
+        "gemini",
+        {},
+    ).get(
+        "confidence",
+        previous.get(
+            "gemini_score",
+            0,
+        ),
+    ) if isinstance(
+        result.get(
+            "gemini"
+        ),
+        dict,
+    ) else previous.get(
+        "gemini_score",
+        0,
+    )
+
+    previous[
+        "gemini_analyzed"
+    ] = bool(
+        result.get(
+            "gemini_analyzed",
+            previous.get(
+                "gemini_analyzed",
+                False,
+            ),
+        )
+    )
+
+    previous[
+        "content_changed"
+    ] = bool(
+        previous_hash
+        and content_hash
+        and previous_hash != content_hash
+    )
+
+    domains[
+        domain
+    ] = previous
+
+
+# ============================================================
+# RESULTS MERGING
+# ============================================================
+
+def load_existing_results():
+    data = load_json(
         RESULTS_FILE,
         [],
     )
 
-    if not isinstance(existing_results, list):
-        existing_results = []
+    if isinstance(
+        data,
+        list,
+    ):
+        return data
 
-    domains = get_recent_domains(TLD)
+    if isinstance(
+        data,
+        dict,
+    ):
+        # Backward compatibility if old results were stored
+        # as a dictionary.
+        return list(
+            data.values()
+        )
 
-    if not domains:
-        print("[!] No domains discovered.")
-        return
+    return []
+
+
+def merge_results(
+    existing,
+    current,
+):
+    by_domain = {}
+
+    for item in existing:
+        if not isinstance(
+            item,
+            dict,
+        ):
+            continue
+
+        domain = normalize_domain(
+            item.get(
+                "domain",
+                "",
+            )
+        )
+
+        if domain:
+            by_domain[
+                domain
+            ] = item
+
+    for item in current:
+        if not isinstance(
+            item,
+            dict,
+        ):
+            continue
+
+        domain = normalize_domain(
+            item.get(
+                "domain",
+                "",
+            )
+        )
+
+        if not domain:
+            continue
+
+        previous = by_domain.get(
+            domain,
+            {},
+        )
+
+        if not isinstance(
+            previous,
+            dict,
+        ):
+            previous = {}
+
+        merged = dict(
+            previous
+        )
+
+        merged.update(
+            item
+        )
+
+        by_domain[
+            domain
+        ] = merged
+
+    return sorted(
+        by_domain.values(),
+        key=lambda item: (
+            int(
+                item.get(
+                    "python_score",
+                    item.get(
+                        "score",
+                        0,
+                    ),
+                )
+                or 0
+            ),
+            str(
+                item.get(
+                    "scanned_at",
+                    "",
+                )
+            ),
+        ),
+        reverse=True,
+    )
+
+
+# ============================================================
+# GEMINI INTEGRATION
+# ============================================================
+
+def run_gemini_analysis(
+    current_results,
+):
+    """
+    Gemini queue ko optional rakha gaya hai.
+
+    Agar Gemini disabled ya key missing ho to Python scan
+    successfully continue karta hai.
+    """
+
+    if not ENABLE_GEMINI:
+        print(
+            "[Gemini] Disabled by configuration."
+        )
+
+        return current_results
+
+    try:
+        from gemini_queue import (
+            run_gemini_queue,
+            merge_gemini_results,
+            print_queue_summary,
+        )
+    except ImportError:
+        try:
+            from scanner.gemini_queue import (
+                run_gemini_queue,
+                merge_gemini_results,
+                print_queue_summary,
+            )
+        except ImportError as exc:
+            print(
+                "[Gemini] Queue import failed:",
+                exc,
+            )
+            return current_results
+
+    try:
+        queue_result = run_gemini_queue(
+            current_results,
+            force=GEMINI_FORCE_REANALYSIS,
+        )
+
+        print_queue_summary(
+            queue_result
+        )
+
+        gemini_results = queue_result.get(
+            "results",
+            [],
+        )
+
+        return merge_gemini_results(
+            current_results,
+            gemini_results,
+        )
+
+    except Exception as exc:
+        print(
+            "[Gemini] Integration error:",
+            exc,
+        )
+
+        # Gemini failure must never destroy Python results.
+        return current_results
+
+
+# ============================================================
+# MAIN
+# ============================================================
+
+def main():
+    started_at = utc_now()
 
     print(
-        f"[*] Starting scan of {len(domains)} domains..."
+        "=========================================="
+    )
+
+    print(
+        "LD76 Domain Finder"
+    )
+
+    print(
+        "Python + Gemini Scanner"
+    )
+
+    print(
+        "=========================================="
+    )
+
+    print(
+        "[Config]"
+    )
+
+    print(
+        "  TLD:",
+        DOMAIN_TLD,
+    )
+
+    print(
+        "  Discovery limit:",
+        DISCOVERY_LIMIT,
+    )
+
+    print(
+        "  Python Gemini threshold:",
+        PYTHON_MIN_SCORE,
+    )
+
+    print(
+        "  Python result threshold:",
+        PYTHON_RESULT_SCORE,
+    )
+
+    print(
+        "  Gemini enabled:",
+        ENABLE_GEMINI,
+    )
+
+    session = create_session()
+
+    domains = get_recent_domains(
+        DOMAIN_TLD
+    )
+
+    print(
+        f"[*] Discovered {len(domains)} domains."
     )
 
     current_results = []
-
-    statistics = {
-        "discovered": len(domains),
-        "checked": 0,
-        "active": 0,
-        "failed": 0,
-        "python_candidates": 0,
-        "high_candidates": 0,
-    }
 
     for index, domain in enumerate(
         domains,
         start=1,
     ):
-        statistics["checked"] += 1
-
         print(
-            f"[{index}/{len(domains)}] "
-            f"Scanning {domain}"
+            f"[{index}/{len(domains)}] Scanning {domain}"
         )
 
         try:
-            result = analyze_site(domain)
-
-            content_hash = result.get(
-                "content_hash"
-            )
-
-            score = int(
-                result.get("score", 0)
-            )
-
-            status = result.get(
-                "status",
-                "failed",
-            )
-
-            if status == "active":
-                statistics["active"] += 1
-            else:
-                statistics["failed"] += 1
-
-            if score >= MIN_SCORE:
-                statistics["python_candidates"] += 1
-
-            if score >= RESULT_SCORE:
-                statistics["high_candidates"] += 1
-
-                print(
-                    f"  [MATCH] {domain} "
-                    f"score={score} "
-                    f"class={result.get('classification')}"
-                )
-
-                current_results.append(result)
-
-            elif status == "active":
-                print(
-                    f"  [-] score={score}"
-                )
-
-            else:
-                print(
-                    f"  [!] {result.get('error')}"
-                )
-
-            update_history(
-                history,
+            result = analyze_site(
+                session,
                 domain,
-                scan_time=result.get(
-                    "scanned_at",
-                    utc_now(),
-                ),
-                status=status,
-                http_status=result.get(
-                    "http_status"
-                ),
-                python_score=score,
-                content_hash=content_hash,
-                error=result.get("error"),
             )
+
+            current_results.append(
+                result
+            )
+
+            if result.get(
+                "status"
+            ) == "active":
+                score = result.get(
+                    "python_score",
+                    0,
+                )
+
+                if score >= PYTHON_MIN_SCORE:
+                    print(
+                        f"  [Python candidate] "
+                        f"{domain} -> score={score}"
+                    )
+
+                if score >= PYTHON_RESULT_SCORE:
+                    print(
+                        f"  [STRONG] "
+                        f"{domain} -> score={score}"
+                    )
 
         except Exception as exc:
-            # One unexpected domain must never crash
-            # the entire scan.
             print(
-                f"  [ERROR] {domain}: {exc}"
+                f"  [!] Domain error: {exc}"
             )
 
-            update_history(
-                history,
-                domain,
-                scan_time=utc_now(),
-                status="scanner_error",
-                python_score=0,
-                error=str(exc),
+            current_results.append(
+                {
+                    "domain": domain,
+                    "status": "scan_error",
+                    "error": str(exc),
+                    "scanned_at": utc_now(),
+                }
             )
 
         if SCAN_DELAY > 0:
-            time.sleep(SCAN_DELAY)
+            time.sleep(
+                SCAN_DELAY
+            )
 
     # --------------------------------------------------------
-    # Merge current high-quality results into results.json.
-    # Same domain + same content hash = update rather than
-    # creating endless duplicate entries.
+    # Keep only strong Python results for permanent result set.
+    # History still receives all scanned domains.
     # --------------------------------------------------------
 
-    result_index = {}
-
-    for item in existing_results:
-        if not isinstance(item, dict):
-            continue
-
-        domain = normalize_domain(
-            item.get("domain")
+    strong_results = [
+        result
+        for result in current_results
+        if isinstance(
+            result,
+            dict,
         )
+        and result.get(
+            "python_score",
+            result.get(
+                "score",
+                0,
+            ),
+        ) >= PYTHON_RESULT_SCORE
+    ]
 
-        if not domain:
-            continue
-
-        result_index[domain] = item
-
-    for item in current_results:
-        domain = item.get("domain")
-
-        if not domain:
-            continue
-
-        result_index[domain] = item
-
-    final_results = list(
-        result_index.values()
+    print(
+        f"[*] Python strong candidates: "
+        f"{len(strong_results)}"
     )
 
-    final_results.sort(
-        key=lambda item: (
-            int(item.get("score", 0)),
-            str(item.get("scanned_at", "")),
-        ),
-        reverse=True,
+    # --------------------------------------------------------
+    # Gemini only sees strong candidates.
+    # --------------------------------------------------------
+
+    analyzed_results = run_gemini_analysis(
+        strong_results
+    )
+
+    # --------------------------------------------------------
+    # Merge Gemini results into permanent results.
+    # --------------------------------------------------------
+
+    existing_results = load_existing_results()
+
+    final_results = merge_results(
+        existing_results,
+        analyzed_results,
+    )
+
+    os.makedirs(
+        "data",
+        exist_ok=True,
     )
 
     save_json(
@@ -1237,74 +1935,89 @@ def main():
         final_results,
     )
 
+    # --------------------------------------------------------
+    # History
+    # --------------------------------------------------------
+
+    history = load_history()
+
+    for result in current_results:
+        update_history(
+            history,
+            result,
+        )
+
+    history[
+        "last_scan_started_at"
+    ] = started_at
+
+    history[
+        "last_scan_finished_at"
+    ] = utc_now()
+
+    history[
+        "last_scan_domains"
+    ] = len(
+        domains
+    )
+
+    history[
+        "last_scan_strong_candidates"
+    ] = len(
+        strong_results
+    )
+
+    history[
+        "last_scan_gemini_enabled"
+    ] = ENABLE_GEMINI
+
     save_json(
         HISTORY_FILE,
         history,
     )
 
-    scan_finished = utc_now()
-
     # --------------------------------------------------------
     # Summary
     # --------------------------------------------------------
 
-    print()
-    print("=" * 60)
-    print("SCAN COMPLETE")
-    print("=" * 60)
-
-    print(
-        f"Discovered:       "
-        f"{statistics['discovered']}"
+    active = sum(
+        1
+        for result in current_results
+        if result.get(
+            "status"
+        ) == "active"
     )
 
     print(
-        f"Websites checked: "
-        f"{statistics['checked']}"
+        "=========================================="
     )
 
     print(
-        f"Active websites:  "
-        f"{statistics['active']}"
+        "Scan complete"
     )
 
     print(
-        f"Failed/inactive:  "
-        f"{statistics['failed']}"
+        "  Domains discovered:",
+        len(domains),
     )
 
     print(
-        f"Python candidates: "
-        f"{statistics['python_candidates']}"
+        "  Active sites:",
+        active,
     )
 
     print(
-        f"High candidates:   "
-        f"{statistics['high_candidates']}"
+        "  Strong Python candidates:",
+        len(strong_results),
     )
 
     print(
-        f"Results stored:    "
-        f"{len(final_results)}"
+        "  Saved results:",
+        len(final_results),
     )
 
     print(
-        f"Started:           "
-        f"{scan_started}"
-    )
-
-    print(
-        f"Finished:          "
-        f"{scan_finished}"
-    )
-
-    print()
-    print(
-        f"[*] Results: {RESULTS_FILE}"
-    )
-
-    print(
-        f"[*] History: {HISTORY_FILE}"
+        "=========================================="
     )
 
 
