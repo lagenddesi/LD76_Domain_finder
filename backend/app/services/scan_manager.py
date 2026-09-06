@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -9,12 +10,13 @@ from ..config import SCANNER_SCRIPT
 from ..database import SessionLocal
 from .persistence import (
     create_scan_history,
+    save_domain_results,
     update_scan_history,
 )
 
 
 class ScanManager:
-    """Manage background scanner jobs for the API."""
+    """Manage background full and targeted scanner jobs."""
 
     def __init__(self) -> None:
         self._lock = threading.RLock()
@@ -35,18 +37,12 @@ class ScanManager:
                     f"Scan {self._running_scan_id} is already running."
                 )
 
-            db = SessionLocal()
-
-            try:
-                history = create_scan_history(db)
-                scan_id = history.id
-            finally:
-                db.close()
+            scan_id = self._create_history()
 
             self._running_scan_id = scan_id
 
             thread = threading.Thread(
-                target=self._run_scan,
+                target=self._run_full_scan,
                 args=(scan_id,),
                 daemon=True,
                 name=f"ld76-scan-{scan_id}",
@@ -55,32 +51,94 @@ class ScanManager:
 
             return scan_id
 
-    def _run_scan(self, scan_id: int) -> None:
+    def start_rescan(self, domain: str) -> int:
+        with self._lock:
+            if self._running_scan_id is not None:
+                raise RuntimeError(
+                    f"Scan {self._running_scan_id} is already running."
+                )
+
+            scan_id = self._create_history()
+
+            self._running_scan_id = scan_id
+
+            thread = threading.Thread(
+                target=self._run_targeted_scan,
+                args=(scan_id, domain),
+                daemon=True,
+                name=f"ld76-rescan-{scan_id}",
+            )
+            thread.start()
+
+            return scan_id
+
+    def _create_history(self) -> int:
         db = SessionLocal()
 
         try:
-            update_scan_history(
-                db,
-                scan_id,
-                status="running",
-            )
+            history = create_scan_history(db)
+            return history.id
         finally:
             db.close()
 
+    def _run_full_scan(self, scan_id: int) -> None:
+        self._run_scanner(
+            scan_id=scan_id,
+            command_type="full",
+        )
+
+    def _run_targeted_scan(
+        self,
+        scan_id: int,
+        domain: str,
+    ) -> None:
+        self._run_scanner(
+            scan_id=scan_id,
+            command_type="targeted",
+            domain=domain,
+        )
+
+    def _run_scanner(
+        self,
+        *,
+        scan_id: int,
+        command_type: str,
+        domain: str | None = None,
+    ) -> None:
+        self._set_running(scan_id)
+
         try:
             script_path = self._resolve_script_path()
+
+            if command_type == "targeted":
+                script_path = (
+                    self._project_root()
+                    / "scanner"
+                    / "rescan.py"
+                )
 
             if not script_path.is_file():
                 raise FileNotFoundError(
                     f"Scanner script not found: {script_path}"
                 )
 
-            env = os.environ.copy()
+            command = [
+                sys.executable,
+                str(script_path),
+            ]
+
+            if command_type == "targeted":
+                if not domain:
+                    raise ValueError(
+                        "Targeted scan requires a domain."
+                    )
+
+                command.append(domain)
 
             process = subprocess.run(
-                [sys.executable, str(script_path)],
+                command,
                 cwd=str(self._project_root()),
-                env=env,
+                env=os.environ.copy(),
                 capture_output=True,
                 text=True,
                 timeout=60 * 60,
@@ -91,7 +149,10 @@ class ScanManager:
                 error = (
                     process.stderr.strip()
                     or process.stdout.strip()
-                    or f"Scanner exited with code {process.returncode}."
+                    or (
+                        "Scanner exited with code "
+                        f"{process.returncode}."
+                    )
                 )
 
                 self._finish_scan(
@@ -100,6 +161,8 @@ class ScanManager:
                     error_message=error[-4000:],
                 )
                 return
+
+            self._sync_results(scan_id)
 
             self._finish_scan(
                 scan_id,
@@ -110,7 +173,9 @@ class ScanManager:
             self._finish_scan(
                 scan_id,
                 status="failed",
-                error_message="Scanner timed out after 60 minutes.",
+                error_message=(
+                    "Scanner timed out after 60 minutes."
+                ),
             )
 
         except Exception as exc:
@@ -119,6 +184,64 @@ class ScanManager:
                 status="failed",
                 error_message=str(exc)[-4000:],
             )
+
+    def _sync_results(self, scan_id: int) -> None:
+        results_file = (
+            self._project_root()
+            / "data"
+            / "results.json"
+        )
+
+        if not results_file.is_file():
+            return
+
+        try:
+            with results_file.open(
+                "r",
+                encoding="utf-8",
+            ) as file:
+                results = json.load(file)
+
+        except (OSError, json.JSONDecodeError):
+            return
+
+        if not isinstance(results, list):
+            return
+
+        db = SessionLocal()
+
+        try:
+            save_domain_results(
+                db,
+                results,
+            )
+
+            update_scan_history(
+                db,
+                scan_id,
+                domains_discovered=len(results),
+                domains_scanned=len(results),
+                candidates_found=sum(
+                    1
+                    for result in results
+                    if isinstance(result, dict)
+                    and result.get("python_score", 0) >= 60
+                ),
+            )
+        finally:
+            db.close()
+
+    def _set_running(self, scan_id: int) -> None:
+        db = SessionLocal()
+
+        try:
+            update_scan_history(
+                db,
+                scan_id,
+                status="running",
+            )
+        finally:
+            db.close()
 
     def _finish_scan(
         self,
@@ -155,12 +278,16 @@ class ScanManager:
         if configured.is_absolute():
             return configured.resolve()
 
-        return (self._project_root() / configured).resolve()
+        return (
+            self._project_root() / configured
+        ).resolve()
 
     def status(self) -> dict[str, Any]:
         with self._lock:
             return {
-                "running": self._running_scan_id is not None,
+                "running": (
+                    self._running_scan_id is not None
+                ),
                 "scan_id": self._running_scan_id,
             }
 
