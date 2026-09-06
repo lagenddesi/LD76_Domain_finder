@@ -15,16 +15,6 @@ android {
         versionName = "1.0"
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -45,6 +35,7 @@ android {
                 "API_BASE_URL",
                 "\"http://10.0.2.2:8000/\""
             )
+
             buildConfigField(
                 "String",
                 "ANDROID_API_KEY",
@@ -54,16 +45,19 @@ android {
 
         getByName("release") {
             isMinifyEnabled = false
+
             buildConfigField(
                 "String",
                 "API_BASE_URL",
                 "\"https://YOUR-BACKEND-DOMAIN/\""
             )
+
             buildConfigField(
                 "String",
                 "ANDROID_API_KEY",
                 "\"change-this-before-release\""
             )
+
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
