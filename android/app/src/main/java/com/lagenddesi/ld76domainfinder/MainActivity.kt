@@ -59,9 +59,9 @@ class MainActivity : ComponentActivity() {
                                     currentScreen = "home"
                                     selectedDomain = null
                                 },
-                                onRescan = { value ->
-                                    viewModel.rescanDomain(value)
-                                },
+                                onRescan = {
+    viewModel.rescanDomain(domain.domain)
+},
                             )
                         }
                     }
