@@ -1,12 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 from ..dependencies import authenticated_client
+from ..rate_limit import limiter
 from ..services.scan_manager import scan_manager
-
-
-limiter = Limiter(key_func=get_remote_address)
 
 
 router = APIRouter(
@@ -33,58 +29,47 @@ def rescan_domain(
     if len(domain) > 253:
         raise HTTPException(
             status_code=400,
-            detail="Invalid domain length.",
+            detail="Domain name is too long.",
         )
 
-    # Reuse the scanner's own normalization/validation logic.
     try:
         from scanner.scanner import normalize_domain
 
         normalized_domain = normalize_domain(domain)
-
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"Domain validation failed: {exc}",
+            detail="Unable to normalize domain.",
         ) from exc
 
     if not normalized_domain:
         raise HTTPException(
             status_code=400,
-            detail="Invalid domain. Only .top domains are supported.",
+            detail="Invalid domain.",
         )
 
     if scan_manager.is_running():
         raise HTTPException(
             status_code=409,
-            detail=(
-                f"Scan {scan_manager.running_scan_id()} "
-                "is already running."
-            ),
+            detail="Another scan is already running.",
         )
 
     try:
-        scan_id = scan_manager.start_rescan(
-            normalized_domain
-        )
-
+        scan_id = scan_manager.start_rescan(normalized_domain)
     except RuntimeError as exc:
         raise HTTPException(
             status_code=409,
             detail=str(exc),
         ) from exc
-
     except Exception as exc:
         raise HTTPException(
             status_code=500,
-            detail=f"Unable to start rescan: {exc}",
+            detail="Unable to start domain rescan.",
         ) from exc
 
     return {
         "status": "started",
         "scan_id": scan_id,
         "domain": normalized_domain,
-        "message": (
-            "Targeted domain rescan started successfully."
-        ),
+        "message": "Targeted domain rescan started successfully.",
     }
