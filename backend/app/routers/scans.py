@@ -1,17 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 from ..database import get_db
 from ..dependencies import authenticated_client
 from ..models import ScanHistory
+from ..rate_limit import limiter
 from ..schemas import ScanStartResponse, ScanStatusResponse
 from ..services.scan_manager import scan_manager
-
-
-limiter = Limiter(key_func=get_remote_address)
 
 
 router = APIRouter(
