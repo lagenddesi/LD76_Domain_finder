@@ -21,6 +21,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.lagenddesi.ld76domainfinder.data.DomainResult
@@ -31,6 +34,14 @@ fun DomainFinderScreen(
     onDomainClick: (DomainResult) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    var minScoreText by remember {
+        mutableStateOf(uiState.minScore?.toString() ?: "")
+    }
+
+    var classificationText by remember {
+        mutableStateOf(uiState.classification ?: "")
+    }
 
     Column(
         modifier = Modifier
@@ -78,6 +89,92 @@ fun DomainFinderScreen(
                 onClick = viewModel::refreshResults,
             ) {
                 Text("Refresh")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+            ) {
+                Text(
+                    text = "Filters",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    OutlinedTextField(
+                        value = minScoreText,
+                        onValueChange = { value ->
+                            if (value.all { char ->
+                                    char.isDigit()
+                                }) {
+                                minScoreText = value
+                            }
+                        },
+                        modifier = Modifier.weight(1f),
+                        label = {
+                            Text("Min score")
+                        },
+                        singleLine = true,
+                    )
+
+                    OutlinedTextField(
+                        value = classificationText,
+                        onValueChange = {
+                            classificationText = it
+                        },
+                        modifier = Modifier.weight(1f),
+                        label = {
+                            Text("Classification")
+                        },
+                        singleLine = true,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Button(
+                        onClick = {
+                            val score = minScoreText
+                                .toIntOrNull()
+                                ?.coerceIn(0, 100)
+
+                            val classification = classificationText
+                                .trim()
+                                .takeIf { it.isNotBlank() }
+
+                            viewModel.applyFilters(
+                                minScore = score,
+                                classification = classification,
+                            )
+                        },
+                    ) {
+                        Text("Apply")
+                    }
+
+                    TextButton(
+                        onClick = {
+                            minScoreText = ""
+                            classificationText = ""
+                            viewModel.clearFilters()
+                        },
+                    ) {
+                        Text("Clear")
+                    }
+                }
             }
         }
 
@@ -142,7 +239,9 @@ fun DomainFinderScreen(
             )
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 items(
