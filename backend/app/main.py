@@ -11,7 +11,7 @@ from .config import (
     validate_security_config,
 )
 from .database import Base, engine
-from .routers import results, scans
+from .routers import rescan, results, scans
 
 
 @asynccontextmanager
@@ -48,6 +48,7 @@ app.add_middleware(
 
 app.include_router(results.router)
 app.include_router(scans.router)
+app.include_router(rescan.router)
 
 
 @app.get("/")
