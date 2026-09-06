@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: ld76-domain-finder-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /health
+
+    envVars:
+      - key: APP_NAME
+        value: LD76 Domain Finder API
+
+      - key: APP_ENV
+        value: production
+
+      - key: APP_DEBUG
+        value: "false"
+
+      - key: HOST
+        value: 0.0.0.0
+
+      - key: CORS_ORIGINS
+        value: "*"
+
+      - key: API_SECRET_KEY
+        generateValue: true
+
+      - key: ANDROID_API_KEY
+        generateValue: true
+
+      - key: DATABASE_URL
+        value: sqlite:////app/data/ld76_domain_finder.db
+
+      - key: SCANNER_SCRIPT
+        value: scanner/scanner.py
+
+      - key: GEMINI_API_KEY
+        sync: false
+
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+
+    disk:
+      name: ld76-domain-data
+      mountPath: /app/data
+      sizeGB: 1
