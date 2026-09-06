@@ -1,7 +1,10 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from .config import (
     APP_DEBUG,
@@ -12,6 +15,12 @@ from .config import (
 )
 from .database import Base, engine
 from .routers import rescan, results, scans
+
+
+# IP-based rate limiter.
+# This is an abuse-protection layer; Android authentication
+# remains handled separately by the protected API dependencies.
+limiter = Limiter(key_func=get_remote_address)
 
 
 @asynccontextmanager
@@ -30,6 +39,14 @@ app = FastAPI(
     ),
     debug=APP_DEBUG,
     lifespan=lifespan,
+)
+
+
+# Register SlowAPI state and exception handling.
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler,
 )
 
 
@@ -52,7 +69,8 @@ app.include_router(rescan.router)
 
 
 @app.get("/")
-def root():
+@limiter.limit("30/minute")
+def root(request: Request):
     return {
         "name": APP_NAME,
         "environment": APP_ENV,
@@ -61,7 +79,8 @@ def root():
 
 
 @app.get("/health")
-def health():
+@limiter.limit("60/minute")
+def health(request: Request):
     return {
         "status": "healthy",
         "service": "ld76-domain-finder-api",
