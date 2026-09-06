@@ -1,106 +1,134 @@
 name: Daily Domain Scanner
 
 on:
-  schedule:
-    - cron: "0 3 * * *"
+schedule:
+- cron: "0 3 * * *"
 
-  workflow_dispatch:
+workflow_dispatch:
 
 permissions:
-  contents: write
+contents: write
 
 jobs:
-  scan:
-    name: Run LD76 Domain Finder
-    runs-on: ubuntu-latest
+scan:
+name: Run LD76 Domain Finder
+runs-on: ubuntu-latest
 
-    steps:
-      # ------------------------------------------------------
-      # 1. Checkout repository
-      # ------------------------------------------------------
-      - name: Checkout Code
-        uses: actions/checkout@v4
+steps:
+  - name: Checkout Code
+    uses: actions/checkout@v4
 
-      # ------------------------------------------------------
-      # 2. Setup Python
-      # ------------------------------------------------------
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-          cache: "pip"
-          cache-dependency-path: scanner/requirements.txt
+  - name: Set up Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: "3.10"
+      cache: "pip"
+      cache-dependency-path: scanner/requirements.txt
 
-      # ------------------------------------------------------
-      # 3. Install dependencies
-      # ------------------------------------------------------
-      - name: Install Dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r scanner/requirements.txt
+  - name: Install Dependencies
+    run: |
+      python -m pip install --upgrade pip
+      pip install -r scanner/requirements.txt
 
-      # ------------------------------------------------------
-      # 4. Run scanner
-      # ------------------------------------------------------
-      - name: Run Scanner Engine
-        env:
-          DOMAIN_TLD: "top"
-          DISCOVERY_LIMIT: "200"
+  - name: Run Scanner Engine
+    env:
+      # --------------------------------------------------
+      # Domain discovery
+      # --------------------------------------------------
+      DOMAIN_TLD: "top"
+      DISCOVERY_LIMIT: "200"
 
-          REQUEST_TIMEOUT: "8"
-          CRTSH_TIMEOUT: "30"
-          MAX_RESPONSE_BYTES: "2097152"
+      # --------------------------------------------------
+      # Website scanning
+      # --------------------------------------------------
+      REQUEST_TIMEOUT: "8"
+      CRTSH_TIMEOUT: "30"
+      MAX_RESPONSE_BYTES: "2097152"
 
-          PYTHON_MIN_SCORE: "60"
-          PYTHON_RESULT_SCORE: "80"
+      # --------------------------------------------------
+      # Python filtering
+      # --------------------------------------------------
+      PYTHON_MIN_SCORE: "60"
+      PYTHON_RESULT_SCORE: "80"
 
-          SCAN_DELAY: "0.25"
+      SCAN_DELAY: "0.25"
 
-          SCANNER_USER_AGENT: "LD76-Domain-Finder/1.0 (+domain-security-research)"
-        run: |
-          python scanner/scanner.py
+      SCANNER_USER_AGENT: "LD76-Domain-Finder/1.0 (+domain-security-research)"
 
-      # ------------------------------------------------------
-      # 5. Show generated files
-      # ------------------------------------------------------
-      - name: Verify Scanner Output
-        run: |
-          echo "=== data directory ==="
-          ls -lah data/
+      # --------------------------------------------------
+      # Gemini
+      # --------------------------------------------------
+      ENABLE_GEMINI: "true"
+      GEMINI_FORCE_REANALYSIS: "false"
 
-          echo
-          echo "=== results.json ==="
-          if [ -f data/results.json ]; then
-            python -m json.tool data/results.json > /dev/null
-            echo "results.json: valid JSON"
-          else
-            echo "results.json: NOT FOUND"
-            exit 1
-          fi
+      GEMINI_MODEL: "gemini-2.5-flash"
 
-          echo
-          echo "=== scan_history.json ==="
-          if [ -f data/scan_history.json ]; then
-            python -m json.tool data/scan_history.json > /dev/null
-            echo "scan_history.json: valid JSON"
-          else
-            echo "scan_history.json: not created"
-          fi
+      # Hard limits
+      GEMINI_DAILY_LIMIT: "50"
+      GEMINI_MAX_REQUESTS: "10"
 
-      # ------------------------------------------------------
-      # 6. Commit scanner data
-      # ------------------------------------------------------
-      - name: Commit and Push Results
-        run: |
-          git config user.name "Domain-Bot"
-          git config user.email "bot@github.com"
+      # Queue controls
+      GEMINI_CONCURRENCY: "2"
+      PYTHON_GEMINI_THRESHOLD: "80"
+      GEMINI_REQUEST_DELAY: "2.0"
 
-          git add data/results.json
-          git add data/scan_history.json
+      # Evidence limits
+      GEMINI_MAX_EVIDENCE_ITEMS: "12"
+      GEMINI_MAX_EVIDENCE_CHARS: "4500"
 
-          if git diff --cached --quiet; then
-            echo "No scanner data changes to commit."
-          else
-            git commit -m "Auto-update: Domain scanner results"
-            git push
-          fi
+      # --------------------------------------------------
+      # Gemini API key
+      # --------------------------------------------------
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+    run: |
+      python scanner/scanner.py
+
+  - name: Verify Scanner Output
+    run: |
+      echo "=== data directory ==="
+      ls -lah data/
+
+      echo
+      echo "=== results.json ==="
+      if [ -f data/results.json ]; then
+        python -m json.tool data/results.json > /dev/null
+        echo "results.json: valid JSON"
+      else
+        echo "results.json: NOT FOUND"
+        exit 1
+      fi
+
+      echo
+      echo "=== scan_history.json ==="
+      if [ -f data/scan_history.json ]; then
+        python -m json.tool data/scan_history.json > /dev/null
+        echo "scan_history.json: valid JSON"
+      else
+        echo "scan_history.json: not created"
+      fi
+
+      echo
+      echo "=== gemini_cache.json ==="
+      if [ -f data/gemini_cache.json ]; then
+        python -m json.tool data/gemini_cache.json > /dev/null
+        echo "gemini_cache.json: valid JSON"
+      else
+        echo "gemini_cache.json: not created"
+      fi
+
+  - name: Commit and Push Results
+    run: |
+      git config user.name "Domain-Bot"
+      git config user.email "bot@github.com"
+
+      git add data/results.json
+      git add data/scan_history.json
+      git add data/gemini_cache.json
+
+      if git diff --cached --quiet; then
+        echo "No scanner data changes to commit."
+      else
+        git commit -m "Auto-update: Domain scanner results"
+        git push
+      fi
