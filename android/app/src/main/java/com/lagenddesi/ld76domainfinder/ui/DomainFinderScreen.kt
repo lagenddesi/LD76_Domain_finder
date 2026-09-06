@@ -28,7 +28,7 @@ import com.lagenddesi.ld76domainfinder.data.DomainResult
 @Composable
 fun DomainFinderScreen(
     viewModel: DomainFinderViewModel,
-    onDomainSelected: (DomainResult) -> Unit,
+    onDomainClick: (DomainResult) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -155,7 +155,7 @@ fun DomainFinderScreen(
                         result = result,
                         onClick = {
                             viewModel.selectDomain(result)
-                            onDomainSelected(result)
+                            onDomainClick(result)
                         },
                     )
                 }
