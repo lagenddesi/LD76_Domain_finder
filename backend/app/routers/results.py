@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
@@ -16,6 +18,26 @@ router = APIRouter(
 )
 
 
+def _load_json_list(value):
+    if not value:
+        return []
+
+    if isinstance(value, list):
+        return value
+
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+
+            if isinstance(parsed, list):
+                return parsed
+
+        except json.JSONDecodeError:
+            pass
+
+    return []
+
+
 def _result_response(result: DomainResult) -> DomainResultResponse:
     return DomainResultResponse(
         id=result.id,
@@ -32,8 +54,8 @@ def _result_response(result: DomainResult) -> DomainResultResponse:
         url=result.url,
         classification=result.classification,
         reason=result.reason,
-        evidence=result.evidence_json or [],
-        signals=result.signals_json or [],
+        evidence=_load_json_list(result.evidence_json),
+        signals=_load_json_list(result.signals_json),
     )
 
 
@@ -45,33 +67,71 @@ def _result_response(result: DomainResult) -> DomainResultResponse:
 def get_results(
     request: Request,
     db: Session = Depends(get_db),
-    limit: int = Query(default=100, ge=1, le=500),
-    min_score: float = Query(default=0, ge=0),
-    min_gemini_score: float | None = Query(default=None, ge=0),
-    classification: str | None = Query(default=None, max_length=50),
-    search: str | None = Query(default=None, max_length=253),
+    limit: int = Query(
+        default=100,
+        ge=1,
+        le=500,
+    ),
+    min_score: float = Query(
+        default=0,
+        ge=0,
+    ),
+    min_gemini_score: float | None = Query(
+        default=None,
+        ge=0,
+    ),
+    classification: str | None = Query(
+        default=None,
+        max_length=50,
+    ),
+    search: str | None = Query(
+        default=None,
+        max_length=253,
+    ),
 ):
     stmt = select(DomainResult)
 
     if min_score > 0:
-        stmt = stmt.where(DomainResult.python_score >= min_score)
+        stmt = stmt.where(
+            DomainResult.python_score >= min_score
+        )
 
     if min_gemini_score is not None:
-        stmt = stmt.where(DomainResult.gemini_score >= min_gemini_score)
+        stmt = stmt.where(
+            DomainResult.gemini_score >= min_gemini_score
+        )
 
     if classification:
-        stmt = stmt.where(
-            DomainResult.classification == classification.strip().lower()
+        classification_value = (
+            classification.strip().lower()
         )
 
-    if search:
-        search_value = f"%{search.strip().lower()}%"
-        stmt = stmt.where(
-            or_(
-                DomainResult.domain.ilike(search_value),
-                DomainResult.title.ilike(search_value),
+        if classification_value:
+            stmt = stmt.where(
+                DomainResult.classification
+                == classification_value
             )
+
+    if search:
+        search_value = (
+            search.strip().lower()
         )
+
+        if search_value:
+            search_pattern = (
+                f"%{search_value}%"
+            )
+
+            stmt = stmt.where(
+                or_(
+                    DomainResult.domain.ilike(
+                        search_pattern
+                    ),
+                    DomainResult.title.ilike(
+                        search_pattern
+                    ),
+                )
+            )
 
     stmt = (
         stmt.order_by(
@@ -83,7 +143,11 @@ def get_results(
     )
 
     results = db.scalars(stmt).all()
-    return [_result_response(result) for result in results]
+
+    return [
+        _result_response(result)
+        for result in results
+    ]
 
 
 @router.get(
@@ -96,7 +160,9 @@ def get_result(
     domain: str,
     db: Session = Depends(get_db),
 ):
-    normalized_domain = domain.strip().lower()
+    normalized_domain = (
+        domain.strip().lower()
+    )
 
     if not normalized_domain:
         raise HTTPException(
@@ -104,9 +170,16 @@ def get_result(
             detail="Domain is required.",
         )
 
+    if len(normalized_domain) > 253:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid domain.",
+        )
+
     result = db.scalar(
         select(DomainResult).where(
-            DomainResult.domain == normalized_domain
+            DomainResult.domain
+            == normalized_domain
         )
     )
 
@@ -127,11 +200,17 @@ def get_result(
 def get_history(
     request: Request,
     db: Session = Depends(get_db),
-    limit: int = Query(default=50, ge=1, le=200),
+    limit: int = Query(
+        default=50,
+        ge=1,
+        le=200,
+    ),
 ):
     stmt = (
         select(ScanHistory)
-        .order_by(ScanHistory.started_at.desc())
+        .order_by(
+            ScanHistory.started_at.desc()
+        )
         .limit(limit)
     )
 
