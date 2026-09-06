@@ -2,28 +2,26 @@
 LD76 Domain Finder
 Single-Domain Rescan Runner
 
-Existing scanner logic ko reuse karta hai:
-    normalize_domain()
-    create_session()
-    analyze_site()
-    run_gemini_analysis()
-    merge_results()
-    load_existing_results()
-    load_history()
-    update_history()
-    save_json()
-
 Usage:
     python scanner/rescan.py example.top
 """
 
 import sys
+from pathlib import Path
 
 
-from scanner import (
+# Ensure project root is importable when this file is executed directly.
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+
+from scanner.scanner import (  # noqa: E402
     DOMAIN_TLD,
     RESULTS_FILE,
     HISTORY_FILE,
+    PYTHON_MIN_SCORE,
     create_session,
     normalize_domain,
     analyze_site,
@@ -45,18 +43,10 @@ def run_rescan(domain):
             f"Invalid domain. Expected a .{DOMAIN_TLD} domain."
         )
 
-    print(
-        "=========================================="
-    )
-    print(
-        "LD76 Domain Finder - Targeted Rescan"
-    )
-    print(
-        "=========================================="
-    )
-    print(
-        f"[*] Domain: {normalized_domain}"
-    )
+    print("==========================================")
+    print("LD76 Domain Finder - Targeted Rescan")
+    print("==========================================")
+    print(f"[*] Domain: {normalized_domain}")
 
     started_at = utc_now()
 
@@ -75,6 +65,8 @@ def run_rescan(domain):
             "Scanner returned no result."
         )
 
+    # Gemini is only triggered when the existing
+    # Python-first pipeline says the candidate qualifies.
     analyzed_results = run_gemini_analysis(
         [result]
     )
@@ -109,7 +101,7 @@ def run_rescan(domain):
         "domains_scanned": 1,
         "candidates_found": (
             1
-            if result.get("python_score", 0) >= 60
+            if result.get("python_score", 0) >= PYTHON_MIN_SCORE
             else 0
         ),
     }
@@ -122,17 +114,18 @@ def run_rescan(domain):
     print(
         f"[*] Status: {result.get('status', 'unknown')}"
     )
+
     print(
         f"[*] Python score: "
         f"{result.get('python_score', 0)}"
     )
+
     print(
         f"[*] Gemini analyzed: "
         f"{result.get('gemini_analyzed', False)}"
     )
-    print(
-        "[+] Targeted rescan completed."
-    )
+
+    print("[+] Targeted rescan completed.")
 
     return result
 
@@ -149,12 +142,8 @@ def main():
             sys.argv[1]
         )
 
-        print(
-            "[Result]"
-        )
-        print(
-            result
-        )
+        print("[Result]")
+        print(result)
 
         return 0
 
