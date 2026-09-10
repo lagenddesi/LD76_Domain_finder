@@ -1,8 +1,2023 @@
 {
-  "domains": {},
-  "last_scan_started_at": "2026-09-09T07:56:23+00:00",
-  "last_scan_finished_at": "2026-09-09T07:56:24+00:00",
-  "last_scan_domains": 0,
+  "domains": {
+    "chanels.top": {
+      "content_hash": "f8c65a774e6df26afa99b8095e9802dd683de4ce6e28227e871e51e3f20932f3",
+      "domain": "chanels.top",
+      "first_seen": "2026-09-10T07:55:55+00:00",
+      "last_seen": "2026-09-10T07:55:55+00:00",
+      "last_scan": "2026-09-10T07:55:55+00:00",
+      "python_score": 55,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "clara-lauretya.top": {
+      "domain": "clara-lauretya.top",
+      "first_seen": "2026-09-10T07:55:58+00:00",
+      "last_seen": "2026-09-10T07:55:58+00:00",
+      "last_scan": "2026-09-10T07:55:58+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "grecourtyard.top": {
+      "domain": "grecourtyard.top",
+      "first_seen": "2026-09-10T07:56:01+00:00",
+      "last_seen": "2026-09-10T07:56:01+00:00",
+      "last_scan": "2026-09-10T07:56:01+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "houseideas.top": {
+      "domain": "houseideas.top",
+      "first_seen": "2026-09-10T07:56:03+00:00",
+      "last_seen": "2026-09-10T07:56:03+00:00",
+      "last_scan": "2026-09-10T07:56:03+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "kazure.top": {
+      "domain": "kazure.top",
+      "first_seen": "2026-09-10T07:56:06+00:00",
+      "last_seen": "2026-09-10T07:56:06+00:00",
+      "last_scan": "2026-09-10T07:56:06+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "patternsolutions.top": {
+      "domain": "patternsolutions.top",
+      "first_seen": "2026-09-10T07:56:09+00:00",
+      "last_seen": "2026-09-10T07:56:09+00:00",
+      "last_scan": "2026-09-10T07:56:09+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "modeler.top": {
+      "domain": "modeler.top",
+      "first_seen": "2026-09-10T07:56:12+00:00",
+      "last_seen": "2026-09-10T07:56:12+00:00",
+      "last_scan": "2026-09-10T07:56:12+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "technotonic.top": {
+      "domain": "technotonic.top",
+      "first_seen": "2026-09-10T07:56:15+00:00",
+      "last_seen": "2026-09-10T07:56:15+00:00",
+      "last_scan": "2026-09-10T07:56:15+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "wincomplete.top": {
+      "domain": "wincomplete.top",
+      "first_seen": "2026-09-10T07:56:17+00:00",
+      "last_seen": "2026-09-10T07:56:17+00:00",
+      "last_scan": "2026-09-10T07:56:17+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "77soso.top": {
+      "domain": "77soso.top",
+      "first_seen": "2026-09-10T07:56:20+00:00",
+      "last_seen": "2026-09-10T07:56:20+00:00",
+      "last_scan": "2026-09-10T07:56:20+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "allmining.top": {
+      "domain": "allmining.top",
+      "first_seen": "2026-09-10T07:56:23+00:00",
+      "last_seen": "2026-09-10T07:56:23+00:00",
+      "last_scan": "2026-09-10T07:56:23+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "asalilmu.top": {
+      "domain": "asalilmu.top",
+      "first_seen": "2026-09-10T07:56:26+00:00",
+      "last_seen": "2026-09-10T07:56:26+00:00",
+      "last_scan": "2026-09-10T07:56:26+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "hapete.top": {
+      "domain": "hapete.top",
+      "first_seen": "2026-09-10T07:56:29+00:00",
+      "last_seen": "2026-09-10T07:56:29+00:00",
+      "last_scan": "2026-09-10T07:56:29+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "homeidea.top": {
+      "content_hash": "7964718c0b8d4114b09ade789a2116a2c1e838ee5ce7f33b9f718cb3d284a857",
+      "domain": "homeidea.top",
+      "first_seen": "2026-09-10T07:56:30+00:00",
+      "last_seen": "2026-09-10T07:56:30+00:00",
+      "last_scan": "2026-09-10T07:56:30+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "backuper.top": {
+      "domain": "backuper.top",
+      "first_seen": "2026-09-10T07:56:33+00:00",
+      "last_seen": "2026-09-10T07:56:33+00:00",
+      "last_scan": "2026-09-10T07:56:33+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "consolel.top": {
+      "domain": "consolel.top",
+      "first_seen": "2026-09-10T07:56:36+00:00",
+      "last_seen": "2026-09-10T07:56:36+00:00",
+      "last_scan": "2026-09-10T07:56:36+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "visioner.top": {
+      "domain": "visioner.top",
+      "first_seen": "2026-09-10T07:57:28+00:00",
+      "last_seen": "2026-09-10T07:57:28+00:00",
+      "last_scan": "2026-09-10T07:57:28+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "bestdisko.top": {
+      "domain": "bestdisko.top",
+      "first_seen": "2026-09-10T07:57:30+00:00",
+      "last_seen": "2026-09-10T07:57:30+00:00",
+      "last_scan": "2026-09-10T07:57:30+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "finales.top": {
+      "domain": "finales.top",
+      "first_seen": "2026-09-10T07:57:33+00:00",
+      "last_seen": "2026-09-10T07:57:33+00:00",
+      "last_scan": "2026-09-10T07:57:33+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "mapun.top": {
+      "domain": "mapun.top",
+      "first_seen": "2026-09-10T07:57:36+00:00",
+      "last_seen": "2026-09-10T07:57:36+00:00",
+      "last_scan": "2026-09-10T07:57:36+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "birdisoprogram.top": {
+      "domain": "birdisoprogram.top",
+      "first_seen": "2026-09-10T07:57:38+00:00",
+      "last_seen": "2026-09-10T07:57:38+00:00",
+      "last_scan": "2026-09-10T07:57:38+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "version-ios.top": {
+      "domain": "version-ios.top",
+      "first_seen": "2026-09-10T07:57:41+00:00",
+      "last_seen": "2026-09-10T07:57:41+00:00",
+      "last_scan": "2026-09-10T07:57:41+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "boardreader.top": {
+      "domain": "boardreader.top",
+      "first_seen": "2026-09-10T07:57:44+00:00",
+      "last_seen": "2026-09-10T07:57:44+00:00",
+      "last_scan": "2026-09-10T07:57:44+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "disput.top": {
+      "domain": "disput.top",
+      "first_seen": "2026-09-10T07:57:47+00:00",
+      "last_seen": "2026-09-10T07:57:47+00:00",
+      "last_scan": "2026-09-10T07:57:47+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "forumosa.top": {
+      "domain": "forumosa.top",
+      "first_seen": "2026-09-10T07:57:49+00:00",
+      "last_seen": "2026-09-10T07:57:49+00:00",
+      "last_scan": "2026-09-10T07:57:49+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "cafeiskerin.top": {
+      "domain": "cafeiskerin.top",
+      "first_seen": "2026-09-10T07:57:52+00:00",
+      "last_seen": "2026-09-10T07:57:52+00:00",
+      "last_scan": "2026-09-10T07:57:52+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "cityko.top": {
+      "domain": "cityko.top",
+      "first_seen": "2026-09-10T07:57:55+00:00",
+      "last_seen": "2026-09-10T07:57:55+00:00",
+      "last_scan": "2026-09-10T07:57:55+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "freediscountin.top": {
+      "domain": "freediscountin.top",
+      "first_seen": "2026-09-10T07:57:58+00:00",
+      "last_seen": "2026-09-10T07:57:58+00:00",
+      "last_scan": "2026-09-10T07:57:58+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "cameljobfinal.top": {
+      "domain": "cameljobfinal.top",
+      "first_seen": "2026-09-10T07:58:00+00:00",
+      "last_seen": "2026-09-10T07:58:00+00:00",
+      "last_scan": "2026-09-10T07:58:00+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "magiccomplete.top": {
+      "domain": "magiccomplete.top",
+      "first_seen": "2026-09-10T07:58:03+00:00",
+      "last_seen": "2026-09-10T07:58:03+00:00",
+      "last_scan": "2026-09-10T07:58:03+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "caten.top": {
+      "domain": "caten.top",
+      "first_seen": "2026-09-10T07:58:06+00:00",
+      "last_seen": "2026-09-10T07:58:06+00:00",
+      "last_scan": "2026-09-10T07:58:06+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "queenl.top": {
+      "domain": "queenl.top",
+      "first_seen": "2026-09-10T07:58:08+00:00",
+      "last_seen": "2026-09-10T07:58:08+00:00",
+      "last_scan": "2026-09-10T07:58:08+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "easyjobprogram.top": {
+      "domain": "easyjobprogram.top",
+      "first_seen": "2026-09-10T07:58:11+00:00",
+      "last_seen": "2026-09-10T07:58:11+00:00",
+      "last_scan": "2026-09-10T07:58:11+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "newjobhome.top": {
+      "domain": "newjobhome.top",
+      "first_seen": "2026-09-10T07:58:14+00:00",
+      "last_seen": "2026-09-10T07:58:14+00:00",
+      "last_scan": "2026-09-10T07:58:14+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "starjobstory.top": {
+      "domain": "starjobstory.top",
+      "first_seen": "2026-09-10T07:58:17+00:00",
+      "last_seen": "2026-09-10T07:58:17+00:00",
+      "last_scan": "2026-09-10T07:58:17+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "gambar.top": {
+      "domain": "gambar.top",
+      "first_seen": "2026-09-10T07:58:20+00:00",
+      "last_seen": "2026-09-10T07:58:20+00:00",
+      "last_scan": "2026-09-10T07:58:20+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "watchvideo.top": {
+      "domain": "watchvideo.top",
+      "first_seen": "2026-09-10T07:58:23+00:00",
+      "last_seen": "2026-09-10T07:58:23+00:00",
+      "last_scan": "2026-09-10T07:58:23+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "gcmon.top": {
+      "domain": "gcmon.top",
+      "first_seen": "2026-09-10T07:58:26+00:00",
+      "last_seen": "2026-09-10T07:58:26+00:00",
+      "last_scan": "2026-09-10T07:58:26+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "hidden.top": {
+      "content_hash": "6dc9c7fc93bb488bb0520a6c780a8d3c0fb5486a4711aca49b4c53fac7393023",
+      "domain": "hidden.top",
+      "first_seen": "2026-09-10T07:58:26+00:00",
+      "last_seen": "2026-09-10T07:58:26+00:00",
+      "last_scan": "2026-09-10T07:58:26+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "itbooks.top": {
+      "domain": "itbooks.top",
+      "first_seen": "2026-09-10T07:58:30+00:00",
+      "last_seen": "2026-09-10T07:58:30+00:00",
+      "last_scan": "2026-09-10T07:58:30+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "mansell.top": {
+      "domain": "mansell.top",
+      "first_seen": "2026-09-10T07:58:33+00:00",
+      "last_seen": "2026-09-10T07:58:33+00:00",
+      "last_scan": "2026-09-10T07:58:33+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "parser4u.top": {
+      "domain": "parser4u.top",
+      "first_seen": "2026-09-10T07:58:36+00:00",
+      "last_seen": "2026-09-10T07:58:36+00:00",
+      "last_scan": "2026-09-10T07:58:36+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "prohead.top": {
+      "domain": "prohead.top",
+      "first_seen": "2026-09-10T07:58:39+00:00",
+      "last_seen": "2026-09-10T07:58:39+00:00",
+      "last_scan": "2026-09-10T07:58:39+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "sinfinity.top": {
+      "domain": "sinfinity.top",
+      "first_seen": "2026-09-10T07:58:41+00:00",
+      "last_seen": "2026-09-10T07:58:41+00:00",
+      "last_scan": "2026-09-10T07:58:41+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "resolverin.top": {
+      "domain": "resolverin.top",
+      "first_seen": "2026-09-10T07:58:44+00:00",
+      "last_seen": "2026-09-10T07:58:44+00:00",
+      "last_scan": "2026-09-10T07:58:44+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "skipperjobres.top": {
+      "domain": "skipperjobres.top",
+      "first_seen": "2026-09-10T07:58:47+00:00",
+      "last_seen": "2026-09-10T07:58:47+00:00",
+      "last_scan": "2026-09-10T07:58:47+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "win-mega.top": {
+      "domain": "win-mega.top",
+      "first_seen": "2026-09-10T07:58:50+00:00",
+      "last_seen": "2026-09-10T07:58:50+00:00",
+      "last_scan": "2026-09-10T07:58:50+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "skydev.top": {
+      "domain": "skydev.top",
+      "first_seen": "2026-09-10T07:58:53+00:00",
+      "last_seen": "2026-09-10T07:58:53+00:00",
+      "last_scan": "2026-09-10T07:58:53+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "tabjobsecure.top": {
+      "domain": "tabjobsecure.top",
+      "first_seen": "2026-09-10T07:58:55+00:00",
+      "last_seen": "2026-09-10T07:58:55+00:00",
+      "last_scan": "2026-09-10T07:58:55+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "win-find.top": {
+      "domain": "win-find.top",
+      "first_seen": "2026-09-10T07:58:58+00:00",
+      "last_seen": "2026-09-10T07:58:58+00:00",
+      "last_scan": "2026-09-10T07:58:58+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "win-gadget.top": {
+      "domain": "win-gadget.top",
+      "first_seen": "2026-09-10T07:59:01+00:00",
+      "last_seen": "2026-09-10T07:59:01+00:00",
+      "last_scan": "2026-09-10T07:59:01+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "ukkm.top": {
+      "domain": "ukkm.top",
+      "first_seen": "2026-09-10T07:59:04+00:00",
+      "last_seen": "2026-09-10T07:59:04+00:00",
+      "last_scan": "2026-09-10T07:59:04+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "unkj.top": {
+      "domain": "unkj.top",
+      "first_seen": "2026-09-10T07:59:07+00:00",
+      "last_seen": "2026-09-10T07:59:07+00:00",
+      "last_scan": "2026-09-10T07:59:07+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "winfind.top": {
+      "domain": "winfind.top",
+      "first_seen": "2026-09-10T07:59:10+00:00",
+      "last_seen": "2026-09-10T07:59:10+00:00",
+      "last_scan": "2026-09-10T07:59:10+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "xiaomingfabu.top": {
+      "domain": "xiaomingfabu.top",
+      "first_seen": "2026-09-10T07:59:12+00:00",
+      "last_seen": "2026-09-10T07:59:12+00:00",
+      "last_scan": "2026-09-10T07:59:12+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "cafeisosticker.top": {
+      "domain": "cafeisosticker.top",
+      "first_seen": "2026-09-10T07:59:15+00:00",
+      "last_seen": "2026-09-10T07:59:15+00:00",
+      "last_scan": "2026-09-10T07:59:15+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "carsworld2015.top": {
+      "domain": "carsworld2015.top",
+      "first_seen": "2026-09-10T07:59:18+00:00",
+      "last_seen": "2026-09-10T07:59:18+00:00",
+      "last_scan": "2026-09-10T07:59:18+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "gardeningtips.top": {
+      "domain": "gardeningtips.top",
+      "first_seen": "2026-09-10T07:59:22+00:00",
+      "last_seen": "2026-09-10T07:59:22+00:00",
+      "last_scan": "2026-09-10T07:59:22+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "healthywomenmags.top": {
+      "domain": "healthywomenmags.top",
+      "first_seen": "2026-09-10T07:59:24+00:00",
+      "last_seen": "2026-09-10T07:59:24+00:00",
+      "last_scan": "2026-09-10T07:59:24+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "indexmp3.top": {
+      "domain": "indexmp3.top",
+      "first_seen": "2026-09-10T07:59:27+00:00",
+      "last_seen": "2026-09-10T07:59:27+00:00",
+      "last_scan": "2026-09-10T07:59:27+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "cfcb.top": {
+      "domain": "cfcb.top",
+      "first_seen": "2026-09-10T07:59:29+00:00",
+      "last_seen": "2026-09-10T07:59:29+00:00",
+      "last_scan": "2026-09-10T07:59:29+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "iajz.top": {
+      "domain": "iajz.top",
+      "first_seen": "2026-09-10T07:59:32+00:00",
+      "last_seen": "2026-09-10T07:59:32+00:00",
+      "last_scan": "2026-09-10T07:59:32+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "enginer.top": {
+      "domain": "enginer.top",
+      "first_seen": "2026-09-10T07:59:33+00:00",
+      "last_seen": "2026-09-10T07:59:33+00:00",
+      "last_scan": "2026-09-10T07:59:33+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "functionmd5.top": {
+      "domain": "functionmd5.top",
+      "first_seen": "2026-09-10T07:59:36+00:00",
+      "last_seen": "2026-09-10T07:59:36+00:00",
+      "last_scan": "2026-09-10T07:59:36+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "socket-center.top": {
+      "domain": "socket-center.top",
+      "first_seen": "2026-09-10T07:59:39+00:00",
+      "last_seen": "2026-09-10T07:59:39+00:00",
+      "last_scan": "2026-09-10T07:59:39+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "funnyapps.top": {
+      "domain": "funnyapps.top",
+      "first_seen": "2026-09-10T07:59:41+00:00",
+      "last_seen": "2026-09-10T07:59:41+00:00",
+      "last_scan": "2026-09-10T07:59:41+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "holaholo.top": {
+      "domain": "holaholo.top",
+      "first_seen": "2026-09-10T07:59:44+00:00",
+      "last_seen": "2026-09-10T07:59:44+00:00",
+      "last_scan": "2026-09-10T07:59:44+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "portalinsurance.top": {
+      "domain": "portalinsurance.top",
+      "first_seen": "2026-09-10T07:59:46+00:00",
+      "last_seen": "2026-09-10T07:59:46+00:00",
+      "last_scan": "2026-09-10T07:59:46+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "itemisobundle.top": {
+      "domain": "itemisobundle.top",
+      "first_seen": "2026-09-10T07:59:49+00:00",
+      "last_seen": "2026-09-10T07:59:49+00:00",
+      "last_scan": "2026-09-10T07:59:49+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "linqgoody.top": {
+      "domain": "linqgoody.top",
+      "first_seen": "2026-09-10T07:59:52+00:00",
+      "last_seen": "2026-09-10T07:59:52+00:00",
+      "last_scan": "2026-09-10T07:59:52+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "mainiao.top": {
+      "domain": "mainiao.top",
+      "first_seen": "2026-09-10T07:59:55+00:00",
+      "last_seen": "2026-09-10T07:59:55+00:00",
+      "last_scan": "2026-09-10T07:59:55+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "matrix-instance.top": {
+      "domain": "matrix-instance.top",
+      "first_seen": "2026-09-10T07:59:57+00:00",
+      "last_seen": "2026-09-10T07:59:57+00:00",
+      "last_scan": "2026-09-10T07:59:57+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "modularbuilding.top": {
+      "domain": "modularbuilding.top",
+      "first_seen": "2026-09-10T08:00:00+00:00",
+      "last_seen": "2026-09-10T08:00:00+00:00",
+      "last_scan": "2026-09-10T08:00:00+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "mokuaihua.top": {
+      "domain": "mokuaihua.top",
+      "first_seen": "2026-09-10T08:00:03+00:00",
+      "last_seen": "2026-09-10T08:00:03+00:00",
+      "last_scan": "2026-09-10T08:00:03+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "agold.top": {
+      "domain": "agold.top",
+      "first_seen": "2026-09-10T08:00:06+00:00",
+      "last_seen": "2026-09-10T08:00:06+00:00",
+      "last_scan": "2026-09-10T08:00:06+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "gudanglagu.top": {
+      "domain": "gudanglagu.top",
+      "first_seen": "2026-09-10T08:00:08+00:00",
+      "last_seen": "2026-09-10T08:00:08+00:00",
+      "last_scan": "2026-09-10T08:00:08+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "mp3fun.top": {
+      "domain": "mp3fun.top",
+      "first_seen": "2026-09-10T08:00:11+00:00",
+      "last_seen": "2026-09-10T08:00:11+00:00",
+      "last_scan": "2026-09-10T08:00:11+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "phim.top": {
+      "content_hash": "fb47468a2cd3953c7131431991afcc6a2703f14640520102eea0a685a7e8d6de",
+      "domain": "phim.top",
+      "first_seen": "2026-09-10T08:00:14+00:00",
+      "last_seen": "2026-09-10T08:00:14+00:00",
+      "last_scan": "2026-09-10T08:00:14+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "louisvuittona-jpn.top": {
+      "domain": "louisvuittona-jpn.top",
+      "first_seen": "2026-09-10T08:00:17+00:00",
+      "last_seen": "2026-09-10T08:00:17+00:00",
+      "last_scan": "2026-09-10T08:00:17+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "louisvuittong-jpn.top": {
+      "domain": "louisvuittong-jpn.top",
+      "first_seen": "2026-09-10T08:00:19+00:00",
+      "last_seen": "2026-09-10T08:00:19+00:00",
+      "last_scan": "2026-09-10T08:00:19+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "mp3song.top": {
+      "domain": "mp3song.top",
+      "first_seen": "2026-09-10T08:00:22+00:00",
+      "last_seen": "2026-09-10T08:00:22+00:00",
+      "last_scan": "2026-09-10T08:00:22+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "webviet.top": {
+      "content_hash": "347c1e21888c71045d645c89155e81e9e4f78354708765451605c98ed69db050",
+      "domain": "webviet.top",
+      "first_seen": "2026-09-10T08:00:23+00:00",
+      "last_seen": "2026-09-10T08:00:23+00:00",
+      "last_scan": "2026-09-10T08:00:23+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "belibeli.top": {
+      "domain": "belibeli.top",
+      "first_seen": "2026-09-10T08:00:26+00:00",
+      "last_seen": "2026-09-10T08:00:26+00:00",
+      "last_scan": "2026-09-10T08:00:26+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "goldcar.top": {
+      "domain": "goldcar.top",
+      "first_seen": "2026-09-10T08:00:29+00:00",
+      "last_seen": "2026-09-10T08:00:29+00:00",
+      "last_scan": "2026-09-10T08:00:29+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "mokuaishi.top": {
+      "domain": "mokuaishi.top",
+      "first_seen": "2026-09-10T08:00:32+00:00",
+      "last_seen": "2026-09-10T08:00:32+00:00",
+      "last_scan": "2026-09-10T08:00:32+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "laotzu.top": {
+      "domain": "laotzu.top",
+      "first_seen": "2026-09-10T08:00:36+00:00",
+      "last_seen": "2026-09-10T08:00:36+00:00",
+      "last_scan": "2026-09-10T08:00:36+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "modularconstruction.top": {
+      "domain": "modularconstruction.top",
+      "first_seen": "2026-09-10T08:00:39+00:00",
+      "last_seen": "2026-09-10T08:00:39+00:00",
+      "last_scan": "2026-09-10T08:00:39+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "louisvuittonc-jpn.top": {
+      "domain": "louisvuittonc-jpn.top",
+      "first_seen": "2026-09-10T08:00:42+00:00",
+      "last_seen": "2026-09-10T08:00:42+00:00",
+      "last_scan": "2026-09-10T08:00:42+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "louisvuittone-jpn.top": {
+      "domain": "louisvuittone-jpn.top",
+      "first_seen": "2026-09-10T08:00:44+00:00",
+      "last_seen": "2026-09-10T08:00:44+00:00",
+      "last_scan": "2026-09-10T08:00:44+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "oh-dog-what-done.top": {
+      "domain": "oh-dog-what-done.top",
+      "first_seen": "2026-09-10T08:00:47+00:00",
+      "last_seen": "2026-09-10T08:00:47+00:00",
+      "last_scan": "2026-09-10T08:00:47+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "xkimmo.top": {
+      "domain": "xkimmo.top",
+      "first_seen": "2026-09-10T08:00:50+00:00",
+      "last_seen": "2026-09-10T08:00:50+00:00",
+      "last_scan": "2026-09-10T08:00:50+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "teamfortress.top": {
+      "domain": "teamfortress.top",
+      "first_seen": "2026-09-10T08:00:52+00:00",
+      "last_seen": "2026-09-10T08:00:52+00:00",
+      "last_scan": "2026-09-10T08:00:52+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "version-all.top": {
+      "domain": "version-all.top",
+      "first_seen": "2026-09-10T08:00:55+00:00",
+      "last_seen": "2026-09-10T08:00:55+00:00",
+      "last_scan": "2026-09-10T08:00:55+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "allkitchencabinets.top": {
+      "domain": "allkitchencabinets.top",
+      "first_seen": "2026-09-10T08:00:58+00:00",
+      "last_seen": "2026-09-10T08:00:58+00:00",
+      "last_scan": "2026-09-10T08:00:58+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "automoblog.top": {
+      "domain": "automoblog.top",
+      "first_seen": "2026-09-10T08:01:01+00:00",
+      "last_seen": "2026-09-10T08:01:01+00:00",
+      "last_scan": "2026-09-10T08:01:01+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "bigtravelpack.top": {
+      "domain": "bigtravelpack.top",
+      "first_seen": "2026-09-10T08:01:04+00:00",
+      "last_seen": "2026-09-10T08:01:04+00:00",
+      "last_scan": "2026-09-10T08:01:04+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "carallnews2015.top": {
+      "domain": "carallnews2015.top",
+      "first_seen": "2026-09-10T08:01:06+00:00",
+      "last_seen": "2026-09-10T08:01:06+00:00",
+      "last_scan": "2026-09-10T08:01:06+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "carspecreview2015.top": {
+      "domain": "carspecreview2015.top",
+      "first_seen": "2026-09-10T08:01:09+00:00",
+      "last_seen": "2026-09-10T08:01:09+00:00",
+      "last_scan": "2026-09-10T08:01:09+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "gardenlandscape.top": {
+      "domain": "gardenlandscape.top",
+      "first_seen": "2026-09-10T08:01:12+00:00",
+      "last_seen": "2026-09-10T08:01:12+00:00",
+      "last_scan": "2026-09-10T08:01:12+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "bluebridge.top": {
+      "domain": "bluebridge.top",
+      "first_seen": "2026-09-10T08:01:15+00:00",
+      "last_seen": "2026-09-10T08:01:15+00:00",
+      "last_scan": "2026-09-10T08:01:15+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "cardepo.top": {
+      "domain": "cardepo.top",
+      "first_seen": "2026-09-10T08:01:18+00:00",
+      "last_seen": "2026-09-10T08:01:18+00:00",
+      "last_scan": "2026-09-10T08:01:18+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "carfacts2015.top": {
+      "domain": "carfacts2015.top",
+      "first_seen": "2026-09-10T08:01:20+00:00",
+      "last_seen": "2026-09-10T08:01:20+00:00",
+      "last_scan": "2026-09-10T08:01:20+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "carspecsreview2015.top": {
+      "domain": "carspecsreview2015.top",
+      "first_seen": "2026-09-10T08:01:23+00:00",
+      "last_seen": "2026-09-10T08:01:23+00:00",
+      "last_scan": "2026-09-10T08:01:23+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "multitronic.top": {
+      "domain": "multitronic.top",
+      "first_seen": "2026-09-10T08:01:26+00:00",
+      "last_seen": "2026-09-10T08:01:26+00:00",
+      "last_scan": "2026-09-10T08:01:26+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "newmuzic.top": {
+      "domain": "newmuzic.top",
+      "first_seen": "2026-09-10T08:01:29+00:00",
+      "last_seen": "2026-09-10T08:01:29+00:00",
+      "last_scan": "2026-09-10T08:01:29+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "oqfym.top": {
+      "domain": "oqfym.top",
+      "first_seen": "2026-09-10T08:01:31+00:00",
+      "last_seen": "2026-09-10T08:01:31+00:00",
+      "last_scan": "2026-09-10T08:01:31+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "sergs.top": {
+      "domain": "sergs.top",
+      "first_seen": "2026-09-10T08:01:34+00:00",
+      "last_seen": "2026-09-10T08:01:34+00:00",
+      "last_scan": "2026-09-10T08:01:34+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "ylis.top": {
+      "domain": "ylis.top",
+      "first_seen": "2026-09-10T08:01:37+00:00",
+      "last_seen": "2026-09-10T08:01:37+00:00",
+      "last_scan": "2026-09-10T08:01:37+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "bet88.top": {
+      "domain": "bet88.top",
+      "first_seen": "2026-09-10T08:01:39+00:00",
+      "last_seen": "2026-09-10T08:01:39+00:00",
+      "last_scan": "2026-09-10T08:01:39+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "fireeye.top": {
+      "domain": "fireeye.top",
+      "first_seen": "2026-09-10T08:01:42+00:00",
+      "last_seen": "2026-09-10T08:01:42+00:00",
+      "last_scan": "2026-09-10T08:01:42+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "forsaleonline.top": {
+      "domain": "forsaleonline.top",
+      "first_seen": "2026-09-10T08:01:45+00:00",
+      "last_seen": "2026-09-10T08:01:45+00:00",
+      "last_scan": "2026-09-10T08:01:45+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "guardwork.top": {
+      "domain": "guardwork.top",
+      "first_seen": "2026-09-10T08:01:47+00:00",
+      "last_seen": "2026-09-10T08:01:47+00:00",
+      "last_scan": "2026-09-10T08:01:47+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "guidekey.top": {
+      "domain": "guidekey.top",
+      "first_seen": "2026-09-10T08:01:50+00:00",
+      "last_seen": "2026-09-10T08:01:50+00:00",
+      "last_scan": "2026-09-10T08:01:50+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "sun-in.top": {
+      "domain": "sun-in.top",
+      "first_seen": "2026-09-10T08:01:53+00:00",
+      "last_seen": "2026-09-10T08:01:53+00:00",
+      "last_scan": "2026-09-10T08:01:53+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "homeview.top": {
+      "domain": "homeview.top",
+      "first_seen": "2026-09-10T08:01:56+00:00",
+      "last_seen": "2026-09-10T08:01:56+00:00",
+      "last_scan": "2026-09-10T08:01:56+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "seatfree.top": {
+      "domain": "seatfree.top",
+      "first_seen": "2026-09-10T08:01:59+00:00",
+      "last_seen": "2026-09-10T08:01:59+00:00",
+      "last_scan": "2026-09-10T08:01:59+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "informer.top": {
+      "domain": "informer.top",
+      "first_seen": "2026-09-10T08:02:52+00:00",
+      "last_seen": "2026-09-10T08:02:52+00:00",
+      "last_scan": "2026-09-10T08:02:52+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "jacboy.top": {
+      "domain": "jacboy.top",
+      "first_seen": "2026-09-10T08:02:55+00:00",
+      "last_seen": "2026-09-10T08:02:55+00:00",
+      "last_scan": "2026-09-10T08:02:55+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "levelin.top": {
+      "domain": "levelin.top",
+      "first_seen": "2026-09-10T08:02:57+00:00",
+      "last_seen": "2026-09-10T08:02:57+00:00",
+      "last_scan": "2026-09-10T08:02:57+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "louisvuittonjpneshop.top": {
+      "domain": "louisvuittonjpneshop.top",
+      "first_seen": "2026-09-10T08:03:00+00:00",
+      "last_seen": "2026-09-10T08:03:00+00:00",
+      "last_scan": "2026-09-10T08:03:00+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "run-in.top": {
+      "domain": "run-in.top",
+      "first_seen": "2026-09-10T08:03:03+00:00",
+      "last_seen": "2026-09-10T08:03:03+00:00",
+      "last_scan": "2026-09-10T08:03:03+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "see-work.top": {
+      "domain": "see-work.top",
+      "first_seen": "2026-09-10T08:03:05+00:00",
+      "last_seen": "2026-09-10T08:03:05+00:00",
+      "last_scan": "2026-09-10T08:03:05+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "seework.top": {
+      "domain": "seework.top",
+      "first_seen": "2026-09-10T08:03:08+00:00",
+      "last_seen": "2026-09-10T08:03:08+00:00",
+      "last_scan": "2026-09-10T08:03:08+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "skyall4u.top": {
+      "domain": "skyall4u.top",
+      "first_seen": "2026-09-10T08:03:10+00:00",
+      "last_seen": "2026-09-10T08:03:10+00:00",
+      "last_scan": "2026-09-10T08:03:10+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "skyzip4u.top": {
+      "domain": "skyzip4u.top",
+      "first_seen": "2026-09-10T08:03:13+00:00",
+      "last_seen": "2026-09-10T08:03:13+00:00",
+      "last_scan": "2026-09-10T08:03:13+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "sunlevelin.top": {
+      "domain": "sunlevelin.top",
+      "first_seen": "2026-09-10T08:03:16+00:00",
+      "last_seen": "2026-09-10T08:03:16+00:00",
+      "last_scan": "2026-09-10T08:03:16+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "bigmachinery.top": {
+      "domain": "bigmachinery.top",
+      "first_seen": "2026-09-10T08:03:18+00:00",
+      "last_seen": "2026-09-10T08:03:18+00:00",
+      "last_scan": "2026-09-10T08:03:18+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "carisaja.top": {
+      "domain": "carisaja.top",
+      "first_seen": "2026-09-10T08:03:21+00:00",
+      "last_seen": "2026-09-10T08:03:21+00:00",
+      "last_scan": "2026-09-10T08:03:21+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "contract-all.top": {
+      "domain": "contract-all.top",
+      "first_seen": "2026-09-10T08:03:24+00:00",
+      "last_seen": "2026-09-10T08:03:24+00:00",
+      "last_scan": "2026-09-10T08:03:24+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "get-web.top": {
+      "domain": "get-web.top",
+      "first_seen": "2026-09-10T08:03:26+00:00",
+      "last_seen": "2026-09-10T08:03:26+00:00",
+      "last_scan": "2026-09-10T08:03:26+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "decrypted.top": {
+      "domain": "decrypted.top",
+      "first_seen": "2026-09-10T08:03:27+00:00",
+      "last_seen": "2026-09-10T08:03:27+00:00",
+      "last_scan": "2026-09-10T08:03:27+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "etoro.top": {
+      "content_hash": "2c6ca79893806aafb7a369501cc43e6f581f3ef2a89a5660895b046d49a2a8a4",
+      "domain": "etoro.top",
+      "first_seen": "2026-09-10T08:03:28+00:00",
+      "last_seen": "2026-09-10T08:03:28+00:00",
+      "last_scan": "2026-09-10T08:03:28+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "national-security.top": {
+      "domain": "national-security.top",
+      "first_seen": "2026-09-10T08:03:30+00:00",
+      "last_seen": "2026-09-10T08:03:30+00:00",
+      "last_scan": "2026-09-10T08:03:30+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "ozonru.top": {
+      "domain": "ozonru.top",
+      "first_seen": "2026-09-10T08:03:33+00:00",
+      "last_seen": "2026-09-10T08:03:33+00:00",
+      "last_scan": "2026-09-10T08:03:33+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "polsystem.top": {
+      "domain": "polsystem.top",
+      "first_seen": "2026-09-10T08:03:36+00:00",
+      "last_seen": "2026-09-10T08:03:36+00:00",
+      "last_scan": "2026-09-10T08:03:36+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "rus-sys.top": {
+      "domain": "rus-sys.top",
+      "first_seen": "2026-09-10T08:03:39+00:00",
+      "last_seen": "2026-09-10T08:03:39+00:00",
+      "last_scan": "2026-09-10T08:03:39+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "us-sys.top": {
+      "domain": "us-sys.top",
+      "first_seen": "2026-09-10T08:03:41+00:00",
+      "last_seen": "2026-09-10T08:03:41+00:00",
+      "last_scan": "2026-09-10T08:03:41+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "doclook.top": {
+      "domain": "doclook.top",
+      "first_seen": "2026-09-10T08:03:44+00:00",
+      "last_seen": "2026-09-10T08:03:44+00:00",
+      "last_scan": "2026-09-10T08:03:44+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "gamesoft.top": {
+      "domain": "gamesoft.top",
+      "first_seen": "2026-09-10T08:03:47+00:00",
+      "last_seen": "2026-09-10T08:03:47+00:00",
+      "last_scan": "2026-09-10T08:03:47+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "gold-file.top": {
+      "domain": "gold-file.top",
+      "first_seen": "2026-09-10T08:03:50+00:00",
+      "last_seen": "2026-09-10T08:03:50+00:00",
+      "last_scan": "2026-09-10T08:03:50+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "greatwork.top": {
+      "domain": "greatwork.top",
+      "first_seen": "2026-09-10T08:03:51+00:00",
+      "last_seen": "2026-09-10T08:03:51+00:00",
+      "last_scan": "2026-09-10T08:03:51+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "instance4u.top": {
+      "domain": "instance4u.top",
+      "first_seen": "2026-09-10T08:03:54+00:00",
+      "last_seen": "2026-09-10T08:03:54+00:00",
+      "last_scan": "2026-09-10T08:03:54+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "leuoo.top": {
+      "domain": "leuoo.top",
+      "first_seen": "2026-09-10T08:03:57+00:00",
+      "last_seen": "2026-09-10T08:03:57+00:00",
+      "last_scan": "2026-09-10T08:03:57+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "matrixall.top": {
+      "content_hash": "cc19c6d890dac019aef225da16667a7393850598ce9985b4f6b801184f2eea69",
+      "domain": "matrixall.top",
+      "first_seen": "2026-09-10T08:03:58+00:00",
+      "last_seen": "2026-09-10T08:03:58+00:00",
+      "last_scan": "2026-09-10T08:03:58+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "whonami.top": {
+      "domain": "whonami.top",
+      "first_seen": "2026-09-10T08:04:01+00:00",
+      "last_seen": "2026-09-10T08:04:01+00:00",
+      "last_scan": "2026-09-10T08:04:01+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "orb1ta.top": {
+      "domain": "orb1ta.top",
+      "first_seen": "2026-09-10T08:04:04+00:00",
+      "last_seen": "2026-09-10T08:04:04+00:00",
+      "last_scan": "2026-09-10T08:04:04+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "18idc.top": {
+      "domain": "18idc.top",
+      "first_seen": "2026-09-10T08:04:07+00:00",
+      "last_seen": "2026-09-10T08:04:07+00:00",
+      "last_scan": "2026-09-10T08:04:07+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "autocars.top": {
+      "content_hash": "6dc9c7fc93bb488bb0520a6c780a8d3c0fb5486a4711aca49b4c53fac7393023",
+      "domain": "autocars.top",
+      "first_seen": "2026-09-10T08:04:08+00:00",
+      "last_seen": "2026-09-10T08:04:08+00:00",
+      "last_scan": "2026-09-10T08:04:08+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "autolup.top": {
+      "domain": "autolup.top",
+      "first_seen": "2026-09-10T08:04:11+00:00",
+      "last_seen": "2026-09-10T08:04:11+00:00",
+      "last_scan": "2026-09-10T08:04:11+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "auto-versicherung.top": {
+      "domain": "auto-versicherung.top",
+      "first_seen": "2026-09-10T08:04:13+00:00",
+      "last_seen": "2026-09-10T08:04:13+00:00",
+      "last_scan": "2026-09-10T08:04:13+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "carspart.top": {
+      "domain": "carspart.top",
+      "first_seen": "2026-09-10T08:04:17+00:00",
+      "last_seen": "2026-09-10T08:04:17+00:00",
+      "last_scan": "2026-09-10T08:04:17+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "creditvoiture.top": {
+      "domain": "creditvoiture.top",
+      "first_seen": "2026-09-10T08:04:20+00:00",
+      "last_seen": "2026-09-10T08:04:20+00:00",
+      "last_scan": "2026-09-10T08:04:20+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "forexcredit.top": {
+      "domain": "forexcredit.top",
+      "first_seen": "2026-09-10T08:04:23+00:00",
+      "last_seen": "2026-09-10T08:04:23+00:00",
+      "last_scan": "2026-09-10T08:04:23+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "insurancecar.top": {
+      "domain": "insurancecar.top",
+      "first_seen": "2026-09-10T08:04:27+00:00",
+      "last_seen": "2026-09-10T08:04:27+00:00",
+      "last_scan": "2026-09-10T08:04:27+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "insurance-ca.top": {
+      "domain": "insurance-ca.top",
+      "first_seen": "2026-09-10T08:04:30+00:00",
+      "last_seen": "2026-09-10T08:04:30+00:00",
+      "last_scan": "2026-09-10T08:04:30+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "kfzversicherungen.top": {
+      "domain": "kfzversicherungen.top",
+      "first_seen": "2026-09-10T08:04:33+00:00",
+      "last_seen": "2026-09-10T08:04:33+00:00",
+      "last_scan": "2026-09-10T08:04:33+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "lawyer3.top": {
+      "domain": "lawyer3.top",
+      "first_seen": "2026-09-10T08:04:36+00:00",
+      "last_seen": "2026-09-10T08:04:36+00:00",
+      "last_scan": "2026-09-10T08:04:36+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "lawyerus.top": {
+      "domain": "lawyerus.top",
+      "first_seen": "2026-09-10T08:04:39+00:00",
+      "last_seen": "2026-09-10T08:04:39+00:00",
+      "last_scan": "2026-09-10T08:04:39+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "money-us.top": {
+      "domain": "money-us.top",
+      "first_seen": "2026-09-10T08:04:42+00:00",
+      "last_seen": "2026-09-10T08:04:42+00:00",
+      "last_scan": "2026-09-10T08:04:42+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "movienet.top": {
+      "domain": "movienet.top",
+      "first_seen": "2026-09-10T08:04:45+00:00",
+      "last_seen": "2026-09-10T08:04:45+00:00",
+      "last_scan": "2026-09-10T08:04:45+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "petspark.top": {
+      "domain": "petspark.top",
+      "first_seen": "2026-09-10T08:04:48+00:00",
+      "last_seen": "2026-09-10T08:04:48+00:00",
+      "last_scan": "2026-09-10T08:04:48+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "bvdbooks.top": {
+      "domain": "bvdbooks.top",
+      "first_seen": "2026-09-10T08:04:52+00:00",
+      "last_seen": "2026-09-10T08:04:52+00:00",
+      "last_scan": "2026-09-10T08:04:52+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "cvgbooks.top": {
+      "domain": "cvgbooks.top",
+      "first_seen": "2026-09-10T08:04:54+00:00",
+      "last_seen": "2026-09-10T08:04:54+00:00",
+      "last_scan": "2026-09-10T08:04:54+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "hlbooks.top": {
+      "domain": "hlbooks.top",
+      "first_seen": "2026-09-10T08:04:58+00:00",
+      "last_seen": "2026-09-10T08:04:58+00:00",
+      "last_scan": "2026-09-10T08:04:58+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "idebooks.top": {
+      "domain": "idebooks.top",
+      "first_seen": "2026-09-10T08:05:01+00:00",
+      "last_seen": "2026-09-10T08:05:01+00:00",
+      "last_scan": "2026-09-10T08:05:01+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "canada4u.top": {
+      "domain": "canada4u.top",
+      "first_seen": "2026-09-10T08:05:04+00:00",
+      "last_seen": "2026-09-10T08:05:04+00:00",
+      "last_scan": "2026-09-10T08:05:04+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "concasseurs.top": {
+      "domain": "concasseurs.top",
+      "first_seen": "2026-09-10T08:05:07+00:00",
+      "last_seen": "2026-09-10T08:05:07+00:00",
+      "last_scan": "2026-09-10T08:05:07+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "movelbritador.top": {
+      "domain": "movelbritador.top",
+      "first_seen": "2026-09-10T08:05:10+00:00",
+      "last_seen": "2026-09-10T08:05:10+00:00",
+      "last_scan": "2026-09-10T08:05:10+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "uasmining.top": {
+      "domain": "uasmining.top",
+      "first_seen": "2026-09-10T08:05:13+00:00",
+      "last_seen": "2026-09-10T08:05:13+00:00",
+      "last_scan": "2026-09-10T08:05:13+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "cuaca.top": {
+      "domain": "cuaca.top",
+      "first_seen": "2026-09-10T08:05:16+00:00",
+      "last_seen": "2026-09-10T08:05:16+00:00",
+      "last_scan": "2026-09-10T08:05:16+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "gaigoi.top": {
+      "domain": "gaigoi.top",
+      "first_seen": "2026-09-10T08:05:19+00:00",
+      "last_seen": "2026-09-10T08:05:19+00:00",
+      "last_scan": "2026-09-10T08:05:19+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "inception.top": {
+      "content_hash": "d5284cf32518d125fb151f36bbebfd7f2efd21d513c9718b257ca47305188bff",
+      "domain": "inception.top",
+      "first_seen": "2026-09-10T08:05:20+00:00",
+      "last_seen": "2026-09-10T08:05:20+00:00",
+      "last_scan": "2026-09-10T08:05:20+00:00",
+      "python_score": 75,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "jere.top": {
+      "content_hash": "53c8e4185407646890d127c9164ed07081b3982d67f202ebfbd3d4b8649ea7fb",
+      "domain": "jere.top",
+      "first_seen": "2026-09-10T08:05:21+00:00",
+      "last_seen": "2026-09-10T08:05:21+00:00",
+      "last_scan": "2026-09-10T08:05:21+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "kanerva.top": {
+      "domain": "kanerva.top",
+      "first_seen": "2026-09-10T08:05:24+00:00",
+      "last_seen": "2026-09-10T08:05:24+00:00",
+      "last_scan": "2026-09-10T08:05:24+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "onsalemall.top": {
+      "domain": "onsalemall.top",
+      "first_seen": "2026-09-10T08:05:27+00:00",
+      "last_seen": "2026-09-10T08:05:27+00:00",
+      "last_scan": "2026-09-10T08:05:27+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "quarrycrushermachine.top": {
+      "domain": "quarrycrushermachine.top",
+      "first_seen": "2026-09-10T08:05:30+00:00",
+      "last_seen": "2026-09-10T08:05:30+00:00",
+      "last_scan": "2026-09-10T08:05:30+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "sikore.top": {
+      "domain": "sikore.top",
+      "first_seen": "2026-09-10T08:05:33+00:00",
+      "last_seen": "2026-09-10T08:05:33+00:00",
+      "last_scan": "2026-09-10T08:05:33+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "torrentts.top": {
+      "domain": "torrentts.top",
+      "first_seen": "2026-09-10T08:05:37+00:00",
+      "last_seen": "2026-09-10T08:05:37+00:00",
+      "last_scan": "2026-09-10T08:05:37+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "cocovpn.top": {
+      "domain": "cocovpn.top",
+      "first_seen": "2026-09-10T08:05:40+00:00",
+      "last_seen": "2026-09-10T08:05:40+00:00",
+      "last_scan": "2026-09-10T08:05:40+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "geotrust.top": {
+      "domain": "geotrust.top",
+      "first_seen": "2026-09-10T08:05:43+00:00",
+      "last_seen": "2026-09-10T08:05:43+00:00",
+      "last_scan": "2026-09-10T08:05:43+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "louisvuittond-jpn.top": {
+      "domain": "louisvuittond-jpn.top",
+      "first_seen": "2026-09-10T08:05:46+00:00",
+      "last_seen": "2026-09-10T08:05:46+00:00",
+      "last_scan": "2026-09-10T08:05:46+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "louisvuittonf-jpn.top": {
+      "domain": "louisvuittonf-jpn.top",
+      "first_seen": "2026-09-10T08:05:49+00:00",
+      "last_seen": "2026-09-10T08:05:49+00:00",
+      "last_scan": "2026-09-10T08:05:49+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "pro100.top": {
+      "content_hash": "45e0b8fccfe3589ed40f2e5ce9408f81abe5ff02439cfb9170374b1049de6472",
+      "domain": "pro100.top",
+      "first_seen": "2026-09-10T08:05:56+00:00",
+      "last_seen": "2026-09-10T08:05:56+00:00",
+      "last_scan": "2026-09-10T08:05:56+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "quibox.top": {
+      "domain": "quibox.top",
+      "first_seen": "2026-09-10T08:05:59+00:00",
+      "last_seen": "2026-09-10T08:05:59+00:00",
+      "last_scan": "2026-09-10T08:05:59+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "rcat.top": {
+      "domain": "rcat.top",
+      "first_seen": "2026-09-10T08:06:53+00:00",
+      "last_seen": "2026-09-10T08:06:53+00:00",
+      "last_scan": "2026-09-10T08:06:53+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "sobek.top": {
+      "content_hash": "25a2d8332edd02c8c66c146dde87164bae183d697b3ba8a5278e4cbaef89f586",
+      "domain": "sobek.top",
+      "first_seen": "2026-09-10T08:06:55+00:00",
+      "last_seen": "2026-09-10T08:06:55+00:00",
+      "last_scan": "2026-09-10T08:06:55+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "autopzionibinarie.top": {
+      "domain": "autopzionibinarie.top",
+      "first_seen": "2026-09-10T08:06:58+00:00",
+      "last_seen": "2026-09-10T08:06:58+00:00",
+      "last_scan": "2026-09-10T08:06:58+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "crer.top": {
+      "domain": "crer.top",
+      "first_seen": "2026-09-10T08:07:01+00:00",
+      "last_seen": "2026-09-10T08:07:01+00:00",
+      "last_scan": "2026-09-10T08:07:01+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "qake.top": {
+      "domain": "qake.top",
+      "first_seen": "2026-09-10T08:07:04+00:00",
+      "last_seen": "2026-09-10T08:07:04+00:00",
+      "last_scan": "2026-09-10T08:07:04+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "freeappslist.top": {
+      "domain": "freeappslist.top",
+      "first_seen": "2026-09-10T08:07:07+00:00",
+      "last_seen": "2026-09-10T08:07:07+00:00",
+      "last_scan": "2026-09-10T08:07:07+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "wallpape.top": {
+      "domain": "wallpape.top",
+      "first_seen": "2026-09-10T08:07:10+00:00",
+      "last_seen": "2026-09-10T08:07:10+00:00",
+      "last_scan": "2026-09-10T08:07:10+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "sexyvideo8.top": {
+      "domain": "sexyvideo8.top",
+      "first_seen": "2026-09-10T08:07:13+00:00",
+      "last_seen": "2026-09-10T08:07:13+00:00",
+      "last_scan": "2026-09-10T08:07:13+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "sexyvideo.top": {
+      "content_hash": "34da0cb22398545399c5b04178b53c97af3429115e39dde80ffc3e62638b1515",
+      "domain": "sexyvideo.top",
+      "first_seen": "2026-09-10T08:07:14+00:00",
+      "last_seen": "2026-09-10T08:07:14+00:00",
+      "last_scan": "2026-09-10T08:07:14+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "techsupport.top": {
+      "domain": "techsupport.top",
+      "first_seen": "2026-09-10T08:07:40+00:00",
+      "last_seen": "2026-09-10T08:07:40+00:00",
+      "last_scan": "2026-09-10T08:07:40+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "testking.top": {
+      "domain": "testking.top",
+      "first_seen": "2026-09-10T08:07:43+00:00",
+      "last_seen": "2026-09-10T08:07:43+00:00",
+      "last_scan": "2026-09-10T08:07:43+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "trendings.top": {
+      "domain": "trendings.top",
+      "first_seen": "2026-09-10T08:07:46+00:00",
+      "last_seen": "2026-09-10T08:07:46+00:00",
+      "last_scan": "2026-09-10T08:07:46+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "autobid.top": {
+      "domain": "autobid.top",
+      "first_seen": "2026-09-10T08:07:49+00:00",
+      "last_seen": "2026-09-10T08:07:49+00:00",
+      "last_scan": "2026-09-10T08:07:49+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "justthe.top": {
+      "content_hash": "bb8a91189528e8390b0e058eea7faeb0bd6db9cbef2bb8ed86aa40360ee2cf19",
+      "domain": "justthe.top",
+      "first_seen": "2026-09-10T08:07:52+00:00",
+      "last_seen": "2026-09-10T08:07:52+00:00",
+      "last_scan": "2026-09-10T08:07:52+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "mcbans.top": {
+      "domain": "mcbans.top",
+      "first_seen": "2026-09-10T08:07:54+00:00",
+      "last_seen": "2026-09-10T08:07:54+00:00",
+      "last_scan": "2026-09-10T08:07:54+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    },
+    "solee.top": {
+      "domain": "solee.top",
+      "first_seen": "2026-09-10T08:07:57+00:00",
+      "last_seen": "2026-09-10T08:07:57+00:00",
+      "last_scan": "2026-09-10T08:07:57+00:00",
+      "python_score": 0,
+      "gemini_score": 0,
+      "gemini_analyzed": false,
+      "content_changed": false
+    }
+  },
+  "last_scan_started_at": "2026-09-10T07:55:51+00:00",
+  "last_scan_finished_at": "2026-09-10T08:07:57+00:00",
+  "last_scan_domains": 200,
   "last_scan_strong_candidates": 0,
   "last_scan_gemini_enabled": true
 }
