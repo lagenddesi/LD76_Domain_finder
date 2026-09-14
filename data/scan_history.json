@@ -2017,9 +2017,9 @@
       "content_changed": false
     }
   },
-  "last_scan_started_at": "2026-09-13T08:04:52+00:00",
-  "last_scan_finished_at": "2026-09-13T08:16:33+00:00",
-  "last_scan_domains": 200,
+  "last_scan_started_at": "2026-09-14T08:38:43+00:00",
+  "last_scan_finished_at": "2026-09-14T08:38:44+00:00",
+  "last_scan_domains": 0,
   "last_scan_strong_candidates": 0,
   "last_scan_gemini_enabled": true
 }
