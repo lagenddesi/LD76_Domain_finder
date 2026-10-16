@@ -1,1 +1,154 @@
-[]
+[
+  {
+    "domain": "auto-versicherung.top",
+    "url": "https://auto-versicherung.top/",
+    "http_status": 200,
+    "content_type": "text/html",
+    "status": "active",
+    "python_score": 150,
+    "score": 150,
+    "python_classification": "very_strong",
+    "signals": [
+      "crypto",
+      "deposit",
+      "pk_payment",
+      "profit",
+      "withdrawal"
+    ],
+    "matched_keywords": [
+      {
+        "category": "profit",
+        "keyword": "roi"
+      },
+      {
+        "category": "deposit",
+        "keyword": "deposit"
+      },
+      {
+        "category": "withdrawal",
+        "keyword": "withdraw"
+      },
+      {
+        "category": "withdrawal",
+        "keyword": "withdrawal"
+      },
+      {
+        "category": "withdrawal",
+        "keyword": "payout"
+      },
+      {
+        "category": "crypto",
+        "keyword": "eth"
+      },
+      {
+        "category": "crypto",
+        "keyword": "tron"
+      },
+      {
+        "category": "pk_payment",
+        "keyword": "rs."
+      },
+      {
+        "category": "pk_payment",
+        "keyword": "rs "
+      }
+    ],
+    "score_breakdown": {
+      "crypto": 15,
+      "profit": 30,
+      "deposit": 20,
+      "withdrawal": 20,
+      "pk_payment": 20
+    },
+    "combination_bonuses": [
+      {
+        "signals": [
+          "deposit",
+          "withdrawal"
+        ],
+        "bonus": 15,
+        "reason": "deposit + withdrawal"
+      },
+      {
+        "signals": [
+          "deposit",
+          "profit"
+        ],
+        "bonus": 15,
+        "reason": "profit + deposit"
+      },
+      {
+        "signals": [
+          "profit",
+          "withdrawal"
+        ],
+        "bonus": 15,
+        "reason": "profit + withdrawal"
+      }
+    ],
+    "evidence": [
+      {
+        "category": "profit",
+        "keyword": "roi",
+        "section": "body",
+        "text": "ackpot triggers and any maximum or minimum stake conditions before playing. Can I use the GLBET9 Android app for pokies, live casino and soccer betting? Use the official GLBET9 Android download or link provided through the brandâs verified website, and check that your phone permit"
+      },
+      {
+        "category": "deposit",
+        "keyword": "deposit",
+        "section": "headings",
+        "text": "ght Ladder The Quiet Corner The Mid Table The Late Room Latest Articles Lightning Slots: What First Depositors Should Check Bingo Online: A Cautious 2026 Value Check Jacks Poker: What First Depositors Should Question What Spinsy Casino's RTP Page Reveals to First-Time Depositors 7 Sharo"
+      },
+      {
+        "category": "withdrawal",
+        "keyword": "withdraw",
+        "section": "buttons",
+        "text": "stery box from a bloke in a trench coat. I would check the basics first: payment speed, game range, withdrawal rules and whether the p... 5 min Read Sep 29, 2026 Jacks Poker: What First Depositors Should Question A first deposit is not the moment to become a mathematical philosopher. It"
+      },
+      {
+        "category": "withdrawal",
+        "keyword": "withdrawal",
+        "section": "buttons",
+        "text": "stery box from a bloke in a trench coat. I would check the basics first: payment speed, game range, withdrawal rules and whether the p... 5 min Read Sep 29, 2026 Jacks Poker: What First Depositors Should Question A first deposit is not the moment to become a mathematical philosopher. It is"
+      },
+      {
+        "category": "withdrawal",
+        "keyword": "payout",
+        "section": "meta_description",
+        "text": "and sports betting at GLBET9 â Australia's considered choice for real-money AUD play. Fast PayID payouts, 24/7 live chat. 18+."
+      },
+      {
+        "category": "crypto",
+        "keyword": "eth",
+        "section": "buttons",
+        "text": "amorous than the adverts suggest. You enter your details, stare at the payment screen, and wonder whether âinstantâ means instant or merely âplease wait whi... 5 min Read Oct 06, 2026 Bingo Online: A Cautious 2026 Value Check Depositing AUD for the first time should not feel l"
+      },
+      {
+        "category": "crypto",
+        "keyword": "tron",
+        "section": "body",
+        "text": "ity can depend on your location and account status. Keep the app and Android system updated, use a strong private password, and never install APK files sent through random messages or unofficial websites. What do I need to sign up for GLBET9 as an Australian player? You must be 18 or"
+      },
+      {
+        "category": "pk_payment",
+        "keyword": "rs.",
+        "section": "body",
+        "text": "AUD Payouts PayID and bank transfers mean your withdrawals clear without unnecessary delays or detours. 03 / 03 24/7 Live Support Live chat is staffed around the clock â a steady presence whenever you need a clear answer. Frequently Asked Questions Can I deposit and withdraw Austr"
+      },
+      {
+        "category": "pk_payment",
+        "keyword": "rs ",
+        "section": "headings",
+        "text": "The Table Awaits Why Players Choose GLBET9 Advanced Security Fast AUD Payouts 24/7 Live Support Frequently Asked Questions What We Hold To After Dark Play Within Limits Independent Voices Know When to Rest Dis"
+      }
+    ],
+    "content_hash": "a046e3c7c55c31359c97e8ea280c6f1e1fbed61de3d654ba97a709ca2942ed3d",
+    "content_length": 97738,
+    "title": "GLBET9 â The Table Awaits",
+    "scanned_at": "2026-10-16T08:03:29+00:00",
+    "gemini_analyzed": false,
+    "gemini_status": "",
+    "gemini_content_hash": "a046e3c7c55c31359c97e8ea280c6f1e1fbed61de3d654ba97a709ca2942ed3d",
+    "gemini_error": "Gemini HTTP 404: {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.8-flash for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/get-started).\",\n    \"status\": \"NOT_FOUND\"\n  }\n}\n"
+  }
+]
