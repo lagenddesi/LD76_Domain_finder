@@ -54,11 +54,11 @@
       }
     ],
     "score_breakdown": {
-      "profit": 30,
       "deposit": 20,
+      "withdrawal": 20,
       "crypto": 15,
-      "pk_payment": 20,
-      "withdrawal": 20
+      "profit": 30,
+      "pk_payment": 20
     },
     "combination_bonuses": [
       {
@@ -142,13 +142,13 @@
         "text": "The Table Awaits Why Players Choose GLBET9 Advanced Security Fast AUD Payouts 24/7 Live Support Frequently Asked Questions What We Hold To After Dark Play Within Limits Independent Voices Know When to Rest Dis"
       }
     ],
-    "content_hash": "bf4541da4bf1d9cf7ae3c80f5e85bd50134cfd2cce3a9f850802d24c2b11dbf7",
+    "content_hash": "d6840f20b414c80d6ad2332a8024d1c71915b0030d061fb076b7038d5053b63d",
     "content_length": 102986,
     "title": "GLBET9 â The Table Awaits",
-    "scanned_at": "2026-10-29T09:38:00+00:00",
+    "scanned_at": "2026-10-30T09:49:19+00:00",
     "gemini_analyzed": false,
     "gemini_status": "",
-    "gemini_content_hash": "bf4541da4bf1d9cf7ae3c80f5e85bd50134cfd2cce3a9f850802d24c2b11dbf7",
+    "gemini_content_hash": "d6840f20b414c80d6ad2332a8024d1c71915b0030d061fb076b7038d5053b63d",
     "gemini_error": "Gemini HTTP 404: {\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.8-flash for the latest features and improvements. We recommend you to use the Interactions API (https://ai.google.dev/gemini-api/docs/get-started).\",\n    \"status\": \"NOT_FOUND\"\n  }\n}\n"
   }
 ]
